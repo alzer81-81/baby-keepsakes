@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply text-stone-900;
+  background:
+    radial-gradient(1200px 700px at 90% -10%, rgba(255, 214, 226, 0.45), transparent 60%),
+    radial-gradient(900px 600px at -10% 15%, rgba(186, 219, 255, 0.35), transparent 55%),
+    #f4f1eb;
+}
+
+label {
+  @apply text-[11px] font-semibold uppercase tracking-[0.08em] text-stone-600;
+}
+
+input,
+select {
+  @apply mt-1 w-full rounded-xl border border-stone-300/90 bg-white/95 px-3 py-2.5 text-sm text-stone-900 shadow-sm shadow-stone-200/60 transition focus:border-stone-500 focus:outline-none focus:ring-2 focus:ring-stone-300/60;
+}
+
+.form-card {
+  @apply rounded-3xl border border-stone-300/80 bg-white/90 shadow-xl shadow-stone-300/30 backdrop-blur;
+}
+
+.panel-title {
+  @apply text-xs font-semibold uppercase tracking-[0.2em] text-stone-500;
+}
+
+.section-card {
+  @apply rounded-2xl border border-stone-200 bg-stone-50/70 p-4;
+}
