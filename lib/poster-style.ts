@@ -261,20 +261,20 @@ export function resolveThemePalette(theme: PosterTheme, textTone: PosterTextTone
 }
 
 export const previewFontFamilies: Record<PosterFont, string> = {
-  playfair: "var(--font-playfair), serif",
-  montserrat: "var(--font-montserrat), sans-serif",
-  lora: "var(--font-lora), serif",
-  nunito: "var(--font-nunito), sans-serif",
-  merriweather: "var(--font-merriweather), serif",
-  raleway: "var(--font-raleway), sans-serif",
-  poppins: "var(--font-poppins), sans-serif",
-  cormorant: "var(--font-cormorant), serif",
-  libre_baskerville: "var(--font-libre-baskerville), serif",
-  quicksand: "var(--font-quicksand), sans-serif",
-  rubik: "var(--font-rubik), sans-serif",
-  dm_sans: "var(--font-dm-sans), sans-serif",
-  archivo: "var(--font-archivo), sans-serif",
-  fira_sans: "var(--font-fira-sans), sans-serif"
+  playfair: "'Playfair Display', serif",
+  montserrat: "Montserrat, sans-serif",
+  lora: "Lora, serif",
+  nunito: "Nunito, sans-serif",
+  merriweather: "Merriweather, serif",
+  raleway: "Raleway, sans-serif",
+  poppins: "Poppins, sans-serif",
+  cormorant: "'Cormorant Garamond', serif",
+  libre_baskerville: "'Libre Baskerville', serif",
+  quicksand: "Quicksand, sans-serif",
+  rubik: "Rubik, sans-serif",
+  dm_sans: "'DM Sans', sans-serif",
+  archivo: "Archivo, sans-serif",
+  fira_sans: "'Fira Sans', sans-serif"
 };
 
 export const printFontFamilies: Record<PosterFont, string> = {
