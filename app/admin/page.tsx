@@ -3,11 +3,27 @@ import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { PosterDesignSpec } from "@/lib/design-spec";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function getCountry(order: { shippingCountry: string | null }): string {
   return order.shippingCountry || "-";
 }
 
 export default async function AdminPage() {
+  if (!process.env.DATABASE_URL) {
+    return (
+      <main className="min-h-screen bg-stone-100 p-6">
+        <div className="mx-auto max-w-3xl rounded-2xl border border-amber-300 bg-amber-50 p-6 text-amber-900 shadow-sm">
+          <h1 className="text-2xl font-bold">Admin Orders</h1>
+          <p className="mt-2 text-sm">
+            DATABASE_URL is not configured. Set it in your deployment environment to load orders.
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   const orders = await prisma.order.findMany({
     orderBy: { createdAt: "desc" }
   });
