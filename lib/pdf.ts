@@ -10,6 +10,10 @@ const launchOptions = {
   args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
 };
 
+if (process.env.VERCEL && !process.env.PLAYWRIGHT_BROWSERS_PATH) {
+  process.env.PLAYWRIGHT_BROWSERS_PATH = "0";
+}
+
 function buildPosterHtml(svgMarkup: string, publicBaseHref: string): string {
   return `
       <!doctype html>
