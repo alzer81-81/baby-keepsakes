@@ -193,13 +193,13 @@ export function PosterBuilder() {
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,500px)] xl:gap-6">
           <section className={`${mobileView === "preview" ? "block" : "hidden"} lg:block`}>
-            <div className="lg:sticky lg:top-[96px] lg:max-h-[calc(100vh-96px)]">
+            <div className="lg:sticky lg:top-[96px] lg:h-[calc(100vh-96px)]">
               <PosterPreview spec={spec} />
             </div>
           </section>
 
           <section className={`${mobileView === "edit" ? "block" : "hidden"} lg:block`}>
-            <div className="rounded-2xl border border-stone-300/80 bg-white p-4 shadow-sm sm:p-6 lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto">
+            <div className="rounded-2xl border border-stone-300/80 bg-white p-4 shadow-sm sm:p-6 lg:h-[calc(100vh-96px)] lg:overflow-y-auto">
               <div className="mb-5 border-b border-stone-200 pb-3">
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-stone-600">Build Your Poster</p>
               </div>

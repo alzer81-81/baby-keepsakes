@@ -70,18 +70,18 @@ export const defaultDesignSpec: PosterDesignSpec = {
   font: "playfair",
   artwork: "lion",
   baby: {
-    firstName: "Ava",
-    middleName: "Ellen",
-    lastName: "Murphy",
-    month: "November",
-    day: 17,
+    firstName: "Noah",
+    middleName: "James",
+    lastName: "Parker",
+    month: "August",
+    day: 12,
     year: 2024,
-    time: "04:06 AM",
-    hospital: "Rotunda Hospital",
-    city: "Dublin",
-    country: "Ireland",
-    weightPounds: 7,
-    weightOunces: 15
+    time: "06:42 AM",
+    hospital: "City Maternity",
+    city: "Boston",
+    country: "USA",
+    weightPounds: 8,
+    weightOunces: 4
   }
 };
 
