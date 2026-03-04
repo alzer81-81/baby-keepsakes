@@ -6,7 +6,9 @@ import { chromium } from "playwright";
 import { printSize } from "@/lib/poster-style";
 
 export async function generatePosterPdf(svgMarkup: string, orderId: number): Promise<string> {
-  const outputDir = path.join(process.cwd(), "storage", "orders");
+  const outputDir = process.env.VERCEL
+    ? path.join("/tmp", "orders")
+    : path.join(process.cwd(), "storage", "orders");
   const publicBaseHref = pathToFileURL(path.join(process.cwd(), "public")).href;
   await mkdir(outputDir, { recursive: true });
   const outputPath = path.join(outputDir, `${orderId}.pdf`);

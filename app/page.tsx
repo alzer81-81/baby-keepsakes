@@ -21,7 +21,7 @@ export default function HomePage() {
   ];
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f7f5f2] px-6 py-16 text-stone-800">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f7f5f2] px-6 py-16 text-stone-800 [font-family:'Nunito','Avenir Next','Avenir','Segoe UI',sans-serif]">
       <div className="pointer-events-none absolute -top-20 -left-24 h-72 w-72 rounded-full bg-rose-200/45 blur-3xl" />
       <div className="pointer-events-none absolute -right-28 top-1/3 h-80 w-80 rounded-full bg-sky-200/40 blur-3xl" />
       <div className="pointer-events-none absolute bottom-[-120px] left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-emerald-200/40 blur-3xl" />
