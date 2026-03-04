@@ -16,7 +16,6 @@ import {
 } from "@/lib/design-spec";
 
 type SectionKey = "baby_date" | "birth" | "stats" | "style";
-type FlowStep = "design" | "details";
 
 export function PosterBuilder() {
   const [spec, setSpec] = useState<PosterDesignSpec>(defaultDesignSpec);
@@ -30,15 +29,6 @@ export function PosterBuilder() {
     stats: false,
     style: false
   });
-  const [flowStep, setFlowStep] = useState<FlowStep>("design");
-
-  const [customerName, setCustomerName] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
-  const [addressLine1, setAddressLine1] = useState("");
-  const [addressLine2, setAddressLine2] = useState("");
-  const [addressCity, setAddressCity] = useState("");
-  const [addressPostalCode, setAddressPostalCode] = useState("");
-  const [addressCountry, setAddressCountry] = useState("");
 
   const dateValue = useMemo(() => {
     const monthIndex = MONTH_OPTIONS.findIndex((m) => m === spec.baby.month);
@@ -99,7 +89,7 @@ export function PosterBuilder() {
     return `${String(hour12).padStart(2, "0")}:${String(mm).padStart(2, "0")} ${period}`;
   }
 
-  function onContinue() {
+  async function onDownloadPdf() {
     setError(null);
     setSuccess(null);
 
@@ -108,43 +98,31 @@ export function PosterBuilder() {
       return;
     }
 
-    setFlowStep("details");
-  }
-
-  async function onSendPlaceholder() {
-    setError(null);
-    setSuccess(null);
-
-    if (!customerName.trim() || !customerEmail.trim() || !addressLine1.trim() || !addressCity.trim() || !addressCountry.trim()) {
-      setError("Please complete name, email, address, city, and country.");
-      return;
-    }
-
     setLoading(true);
     try {
-      const res = await fetch("/api/placeholder-submit", {
+      const res = await fetch("/api/download-pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          spec,
-          customerName,
-          customerEmail,
-          addressLine1,
-          addressLine2,
-          city: addressCity,
-          postalCode: addressPostalCode,
-          country: addressCountry
-        })
+        body: JSON.stringify(spec)
       });
 
       if (!res.ok) {
         const data = (await res.json()) as { error?: string };
-        throw new Error(data.error ?? "Unable to send details.");
+        throw new Error(data.error ?? "Unable to generate PDF.");
       }
 
-      setSuccess("Sent. Placeholder submission complete. Next step will be Stripe payment details.");
-    } catch (submitError) {
-      const message = submitError instanceof Error ? submitError.message : "Send failed";
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${spec.baby.firstName || "birth"}-${spec.baby.lastName || "poster"}.pdf`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      setSuccess("PDF downloaded.");
+    } catch (downloadError) {
+      const message = downloadError instanceof Error ? downloadError.message : "Download failed";
       setError(message);
     } finally {
       setLoading(false);
@@ -222,297 +200,200 @@ export function PosterBuilder() {
 
           <section className={`${mobileView === "edit" ? "block" : "hidden"} lg:block`}>
             <div className="rounded-2xl border border-stone-300/80 bg-white p-4 shadow-sm sm:p-6 lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto">
-              {flowStep === "design" ? (
-                <>
-                  <div className="mb-5 border-b border-stone-200 pb-3">
-                    <p className="text-sm font-semibold uppercase tracking-[0.16em] text-stone-600">Build Your Poster</p>
-                  </div>
+              <div className="mb-5 border-b border-stone-200 pb-3">
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-stone-600">Build Your Poster</p>
+              </div>
 
-                  <div className="space-y-4 sm:space-y-5">
-                    {renderSection(
-                      "Baby Date Details",
-                      "Enter your baby's name, birthday, and birth time.",
-                      "baby_date",
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div>
-                          <label htmlFor="firstName">
-                            First Name <span aria-hidden>*</span>
-                          </label>
-                          <input
-                            id="firstName"
-                            value={spec.baby.firstName}
-                            onChange={(e) => patchBaby("firstName", e.target.value)}
-                            required
-                            aria-required="true"
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="middleName">Middle Name</label>
-                          <input id="middleName" value={spec.baby.middleName} onChange={(e) => patchBaby("middleName", e.target.value)} />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <label htmlFor="lastName">
-                            Surname <span aria-hidden>*</span>
-                          </label>
-                          <input
-                            id="lastName"
-                            value={spec.baby.lastName}
-                            onChange={(e) => patchBaby("lastName", e.target.value)}
-                            required
-                            aria-required="true"
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="dateOfBirth">Date Of Birth</label>
-                          <input
-                            id="dateOfBirth"
-                            type="date"
-                            className="text-left [text-align-last:left]"
-                            value={dateValue}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              if (!value) return;
-                              const [yearStr, monthStr, dayStr] = value.split("-");
-                              const year = Number(yearStr);
-                              const month = Number(monthStr);
-                              const day = Number(dayStr);
-                              const monthName = MONTH_OPTIONS[month - 1] ?? MONTH_OPTIONS[0];
-                              setSpec((prev) => ({
-                                ...prev,
-                                baby: {
-                                  ...prev.baby,
-                                  month: monthName,
-                                  day,
-                                  year
-                                }
-                              }));
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="time">Time Of Birth</label>
-                          <input
-                            id="time"
-                            type="time"
-                            inputMode="numeric"
-                            step={60}
-                            value={timeInputValue}
-                            onChange={(e) => patchBaby("time", formatTimeForPoster(e.target.value))}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {renderSection(
-                      "Birth Details",
-                      "Add location information for where your baby was born.",
-                      "birth",
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div>
-                          <label htmlFor="hospital">Hospital</label>
-                          <input id="hospital" value={spec.baby.hospital} onChange={(e) => patchBaby("hospital", e.target.value)} />
-                        </div>
-                        <div>
-                          <label htmlFor="city">City</label>
-                          <input id="city" value={spec.baby.city} onChange={(e) => patchBaby("city", e.target.value)} />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <label htmlFor="country">Country</label>
-                          <input id="country" value={spec.baby.country} onChange={(e) => patchBaby("country", e.target.value)} />
-                        </div>
-                      </div>
-                    )}
-
-                    {renderSection(
-                      "Birth Stats",
-                      "Record weight details as pounds and ounces.",
-                      "stats",
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div>
-                          <label htmlFor="weightPounds">Weight (lb)</label>
-                          <input
-                            id="weightPounds"
-                            type="number"
-                            min={0}
-                            max={20}
-                            value={spec.baby.weightPounds}
-                            onChange={(e) => patchBaby("weightPounds", Number(e.target.value))}
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="weightOunces">Weight (oz)</label>
-                          <input
-                            id="weightOunces"
-                            type="number"
-                            min={0}
-                            max={15}
-                            value={spec.baby.weightOunces}
-                            onChange={(e) => patchBaby("weightOunces", Number(e.target.value))}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {renderSection(
-                      "Style",
-                      "Choose colors, type, and artwork for the poster design.",
-                      "style",
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div>
-                          <label htmlFor="theme">Theme</label>
-                          <select id="theme" value={spec.theme} onChange={(e) => setSpec((prev) => ({ ...prev, theme: e.target.value as PosterTheme }))}>
-                            <option value="blush_meadow">Blush Meadow</option>
-                            <option value="warm_peach">Warm Peach</option>
-                            <option value="powder_blue">Powder Blue</option>
-                            <option value="sage_rose">Sage Rose</option>
-                            <option value="terracotta_sky">Terracotta Sky</option>
-                            <option value="mono_ink">Mono Ink</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label htmlFor="textTone">Text Color Style</label>
-                          <select
-                            id="textTone"
-                            value={spec.textTone}
-                            onChange={(e) => setSpec((prev) => ({ ...prev, textTone: e.target.value as PosterTextTone }))}
-                          >
-                            <option value="classic">Classic</option>
-                            <option value="soft">Soft</option>
-                            <option value="bold">Bold</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label htmlFor="font">Font</label>
-                          <select id="font" value={spec.font} onChange={(e) => setSpec((prev) => ({ ...prev, font: e.target.value as PosterFont }))}>
-                            <option value="playfair">Playfair Display</option>
-                            <option value="montserrat">Montserrat</option>
-                            <option value="lora">Lora</option>
-                            <option value="nunito">Nunito</option>
-                            <option value="merriweather">Merriweather</option>
-                            <option value="raleway">Raleway</option>
-                            <option value="poppins">Poppins</option>
-                            <option value="cormorant">Cormorant Garamond</option>
-                            <option value="libre_baskerville">Libre Baskerville</option>
-                            <option value="quicksand">Quicksand</option>
-                            <option value="rubik">Rubik</option>
-                            <option value="dm_sans">DM Sans</option>
-                            <option value="archivo">Archivo</option>
-                            <option value="fira_sans">Fira Sans</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label htmlFor="artwork">Artwork</label>
-                          <select
-                            id="artwork"
-                            value={spec.artwork}
-                            onChange={(e) => setSpec((prev) => ({ ...prev, artwork: e.target.value as PosterArtwork }))}
-                          >
-                            <option value="lion">Lion</option>
-                            <option value="bear">Bear</option>
-                            <option value="cat">Cat</option>
-                            <option value="panda">Panda</option>
-                            <option value="dog">Dog</option>
-                            <option value="fox">Fox</option>
-                            <option value="bird">Bird</option>
-                            <option value="bee">Bee</option>
-                          </select>
-                        </div>
-                      </div>
-                    )}
-
-                    {error ? <p className="text-sm font-medium text-red-700">{error}</p> : null}
-                    {success ? <p className="text-sm font-medium text-emerald-700">{success}</p> : null}
-
-                    <div className="mt-2 pb-2 pt-4 lg:sticky lg:bottom-0 lg:bg-gradient-to-t lg:from-white lg:via-white lg:to-transparent">
-                      <button
-                        type="button"
-                        onClick={onContinue}
-                        className="inline-flex w-full items-center justify-center rounded-xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60"
-                      >
-                        Continue
-                      </button>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="mb-5 border-b border-stone-200 pb-3">
-                    <p className="text-sm font-semibold uppercase tracking-[0.16em] text-stone-600">Your Details</p>
-                    <p className="mt-1 text-xs text-stone-500">
-                      Placeholder flow: sends all details and generated PDF to `alpower242@gmail.com`.
-                    </p>
-                  </div>
-
+              <div className="space-y-4 sm:space-y-5">
+                {renderSection(
+                  "Baby Date Details",
+                  "Enter your baby's name, birthday, and birth time.",
+                  "baby_date",
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="sm:col-span-2">
-                      <label htmlFor="customerName">
-                        Full Name <span aria-hidden>*</span>
+                    <div>
+                      <label htmlFor="firstName">
+                        First Name <span aria-hidden>*</span>
                       </label>
-                      <input id="customerName" value={customerName} onChange={(e) => setCustomerName(e.target.value)} required aria-required="true" />
+                      <input id="firstName" value={spec.baby.firstName} onChange={(e) => patchBaby("firstName", e.target.value)} required aria-required="true" />
+                    </div>
+                    <div>
+                      <label htmlFor="middleName">Middle Name</label>
+                      <input id="middleName" value={spec.baby.middleName} onChange={(e) => patchBaby("middleName", e.target.value)} />
                     </div>
                     <div className="sm:col-span-2">
-                      <label htmlFor="customerEmail">
-                        Email <span aria-hidden>*</span>
+                      <label htmlFor="lastName">
+                        Surname <span aria-hidden>*</span>
                       </label>
+                      <input id="lastName" value={spec.baby.lastName} onChange={(e) => patchBaby("lastName", e.target.value)} required aria-required="true" />
+                    </div>
+                    <div>
+                      <label htmlFor="dateOfBirth">Date Of Birth</label>
                       <input
-                        id="customerEmail"
-                        type="email"
-                        value={customerEmail}
-                        onChange={(e) => setCustomerEmail(e.target.value)}
-                        required
-                        aria-required="true"
+                        id="dateOfBirth"
+                        type="date"
+                        className="text-left [text-align-last:left]"
+                        value={dateValue}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (!value) return;
+                          const [yearStr, monthStr, dayStr] = value.split("-");
+                          const year = Number(yearStr);
+                          const month = Number(monthStr);
+                          const day = Number(dayStr);
+                          const monthName = MONTH_OPTIONS[month - 1] ?? MONTH_OPTIONS[0];
+                          setSpec((prev) => ({
+                            ...prev,
+                            baby: {
+                              ...prev.baby,
+                              month: monthName,
+                              day,
+                              year
+                            }
+                          }));
+                        }}
                       />
                     </div>
-                    <div className="sm:col-span-2">
-                      <label htmlFor="addressLine1">
-                        Address Line 1 <span aria-hidden>*</span>
-                      </label>
-                      <input id="addressLine1" value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} required aria-required="true" />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <label htmlFor="addressLine2">Address Line 2</label>
-                      <input id="addressLine2" value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} />
-                    </div>
                     <div>
-                      <label htmlFor="addressCity">
-                        City <span aria-hidden>*</span>
-                      </label>
-                      <input id="addressCity" value={addressCity} onChange={(e) => setAddressCity(e.target.value)} required aria-required="true" />
-                    </div>
-                    <div>
-                      <label htmlFor="addressPostalCode">Postcode / ZIP</label>
-                      <input id="addressPostalCode" value={addressPostalCode} onChange={(e) => setAddressPostalCode(e.target.value)} />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <label htmlFor="addressCountry">
-                        Country <span aria-hidden>*</span>
-                      </label>
-                      <input id="addressCountry" value={addressCountry} onChange={(e) => setAddressCountry(e.target.value)} required aria-required="true" />
+                      <label htmlFor="time">Time Of Birth</label>
+                      <input
+                        id="time"
+                        type="time"
+                        inputMode="numeric"
+                        step={60}
+                        value={timeInputValue}
+                        onChange={(e) => patchBaby("time", formatTimeForPoster(e.target.value))}
+                      />
                     </div>
                   </div>
+                )}
 
-                  {error ? <p className="mt-4 text-sm font-medium text-red-700">{error}</p> : null}
-                  {success ? <p className="mt-4 text-sm font-medium text-emerald-700">{success}</p> : null}
-
-                  <div className="mt-6 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setFlowStep("design")}
-                      className="inline-flex w-1/3 items-center justify-center rounded-xl border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60"
-                    >
-                      Back
-                    </button>
-                    <button
-                      type="button"
-                      onClick={onSendPlaceholder}
-                      disabled={loading}
-                      className="inline-flex w-2/3 items-center justify-center rounded-xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {loading ? "Sending..." : "Send"}
-                    </button>
+                {renderSection(
+                  "Birth Details",
+                  "Add location information for where your baby was born.",
+                  "birth",
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="hospital">Hospital</label>
+                      <input id="hospital" value={spec.baby.hospital} onChange={(e) => patchBaby("hospital", e.target.value)} />
+                    </div>
+                    <div>
+                      <label htmlFor="city">City</label>
+                      <input id="city" value={spec.baby.city} onChange={(e) => patchBaby("city", e.target.value)} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label htmlFor="country">Country</label>
+                      <input id="country" value={spec.baby.country} onChange={(e) => patchBaby("country", e.target.value)} />
+                    </div>
                   </div>
-                </>
-              )}
+                )}
+
+                {renderSection(
+                  "Birth Stats",
+                  "Record weight details as pounds and ounces.",
+                  "stats",
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="weightPounds">Weight (lb)</label>
+                      <input
+                        id="weightPounds"
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={spec.baby.weightPounds}
+                        onChange={(e) => patchBaby("weightPounds", Number(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="weightOunces">Weight (oz)</label>
+                      <input
+                        id="weightOunces"
+                        type="number"
+                        min={0}
+                        max={15}
+                        value={spec.baby.weightOunces}
+                        onChange={(e) => patchBaby("weightOunces", Number(e.target.value))}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {renderSection(
+                  "Style",
+                  "Choose colors, type, and artwork for the poster design.",
+                  "style",
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="theme">Theme</label>
+                      <select id="theme" value={spec.theme} onChange={(e) => setSpec((prev) => ({ ...prev, theme: e.target.value as PosterTheme }))}>
+                        <option value="blush_meadow">Blush Meadow</option>
+                        <option value="warm_peach">Warm Peach</option>
+                        <option value="powder_blue">Powder Blue</option>
+                        <option value="sage_rose">Sage Rose</option>
+                        <option value="terracotta_sky">Terracotta Sky</option>
+                        <option value="mono_ink">Mono Ink</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="textTone">Text Color Style</label>
+                      <select
+                        id="textTone"
+                        value={spec.textTone}
+                        onChange={(e) => setSpec((prev) => ({ ...prev, textTone: e.target.value as PosterTextTone }))}
+                      >
+                        <option value="classic">Classic</option>
+                        <option value="soft">Soft</option>
+                        <option value="bold">Bold</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="font">Font</label>
+                      <select id="font" value={spec.font} onChange={(e) => setSpec((prev) => ({ ...prev, font: e.target.value as PosterFont }))}>
+                        <option value="playfair">Playfair Display</option>
+                        <option value="montserrat">Montserrat</option>
+                        <option value="lora">Lora</option>
+                        <option value="nunito">Nunito</option>
+                        <option value="merriweather">Merriweather</option>
+                        <option value="raleway">Raleway</option>
+                        <option value="poppins">Poppins</option>
+                        <option value="cormorant">Cormorant Garamond</option>
+                        <option value="libre_baskerville">Libre Baskerville</option>
+                        <option value="quicksand">Quicksand</option>
+                        <option value="rubik">Rubik</option>
+                        <option value="dm_sans">DM Sans</option>
+                        <option value="archivo">Archivo</option>
+                        <option value="fira_sans">Fira Sans</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="artwork">Artwork</label>
+                      <select id="artwork" value={spec.artwork} onChange={(e) => setSpec((prev) => ({ ...prev, artwork: e.target.value as PosterArtwork }))}>
+                        <option value="lion">Lion</option>
+                        <option value="bear">Bear</option>
+                        <option value="cat">Cat</option>
+                        <option value="panda">Panda</option>
+                        <option value="dog">Dog</option>
+                        <option value="fox">Fox</option>
+                        <option value="bird">Bird</option>
+                        <option value="bee">Bee</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {error ? <p className="text-sm font-medium text-red-700">{error}</p> : null}
+                {success ? <p className="text-sm font-medium text-emerald-700">{success}</p> : null}
+
+                <div className="mt-2 pb-2 pt-4 lg:sticky lg:bottom-0 lg:bg-gradient-to-t lg:from-white lg:via-white lg:to-transparent">
+                  <button
+                    type="button"
+                    onClick={onDownloadPdf}
+                    disabled={loading}
+                    className="inline-flex w-full items-center justify-center rounded-xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {loading ? "Generating PDF..." : "Download High-Res PDF"}
+                  </button>
+                </div>
+              </div>
             </div>
           </section>
         </div>

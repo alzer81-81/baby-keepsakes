@@ -5,19 +5,8 @@ import { chromium } from "playwright";
 
 import { printSize } from "@/lib/poster-style";
 
-export async function generatePosterPdf(svgMarkup: string, orderId: number): Promise<string> {
-  const outputDir = process.env.VERCEL
-    ? path.join("/tmp", "orders")
-    : path.join(process.cwd(), "storage", "orders");
-  const publicBaseHref = pathToFileURL(path.join(process.cwd(), "public")).href;
-  await mkdir(outputDir, { recursive: true });
-  const outputPath = path.join(outputDir, `${orderId}.pdf`);
-
-  const browser = await chromium.launch({ headless: true });
-
-  try {
-    const page = await browser.newPage();
-    const html = `
+function buildPosterHtml(svgMarkup: string, publicBaseHref: string): string {
+  return `
       <!doctype html>
       <html>
         <head>
@@ -50,6 +39,43 @@ export async function generatePosterPdf(svgMarkup: string, orderId: number): Pro
         </body>
       </html>
     `;
+}
+
+export async function generatePosterPdfBuffer(svgMarkup: string): Promise<Buffer> {
+  const publicBaseHref = pathToFileURL(path.join(process.cwd(), "public")).href;
+  const browser = await chromium.launch({ headless: true });
+
+  try {
+    const page = await browser.newPage();
+    const html = buildPosterHtml(svgMarkup, publicBaseHref);
+    await page.setContent(html, { waitUntil: "networkidle" });
+
+    const pdfBuffer = await page.pdf({
+      width: `${printSize.widthMm}mm`,
+      height: `${printSize.heightMm}mm`,
+      printBackground: true,
+      margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" }
+    });
+
+    return Buffer.from(pdfBuffer);
+  } finally {
+    await browser.close();
+  }
+}
+
+export async function generatePosterPdf(svgMarkup: string, orderId: number): Promise<string> {
+  const outputDir = process.env.VERCEL
+    ? path.join("/tmp", "orders")
+    : path.join(process.cwd(), "storage", "orders");
+  const publicBaseHref = pathToFileURL(path.join(process.cwd(), "public")).href;
+  await mkdir(outputDir, { recursive: true });
+  const outputPath = path.join(outputDir, `${orderId}.pdf`);
+
+  const browser = await chromium.launch({ headless: true });
+
+  try {
+    const page = await browser.newPage();
+    const html = buildPosterHtml(svgMarkup, publicBaseHref);
 
     await page.setContent(html, { waitUntil: "networkidle" });
     await page.pdf({
