@@ -280,7 +280,7 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
 
   <g transform="translate(166 249)">
     <circle cx="0" cy="0" r="34" fill="${palette.badgeFill}" />
-    <line x1="15" y1="-34" x2="15" y2="34" stroke="${palette.background}" stroke-width="1.2" opacity="0.6" />
+    <line x1="15" y1="-34" x2="15" y2="34" stroke="${palette.background}" stroke-width="1.2" opacity="1" />
     <text x="-4" y="13" text-anchor="middle" style="font-family:${fontFamily};font-size:${poundsFontSize}px;font-weight:700;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:'lnum' 1,'tnum' 1;fill:${palette.badgeText};">${pounds}</text>
     <text x="18" y="0" text-anchor="middle" transform="rotate(90 18 0)" style="font-family:${fontFamily};font-size:9.2px;font-weight:700;letter-spacing:0.48px;fill:${palette.background};">POUNDS</text>
     <text x="0" y="48" text-anchor="middle" style="font-family:${fontFamily};font-size:8px;font-weight:600;letter-spacing:0.72px;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:'lnum' 1,'tnum' 1;fill:${palette.badgeFill};">${ounces} OUNCES</text>
