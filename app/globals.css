@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap");
 
 :root {
   color-scheme: light;
@@ -8,6 +9,7 @@
 
 body {
   @apply text-stone-900;
+  font-family: "Nunito", "Avenir Next", "Avenir", "Segoe UI", sans-serif;
   background:
     radial-gradient(1200px 700px at 90% -10%, rgba(255, 214, 226, 0.45), transparent 60%),
     radial-gradient(900px 600px at -10% 15%, rgba(186, 219, 255, 0.35), transparent 55%),

@@ -26,7 +26,6 @@ export function PosterBuilder() {
   const [spec, setSpec] = useState<PosterDesignSpec>(defaultDesignSpec);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [zoom, setZoom] = useState(1);
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
   const [openSection, setOpenSection] = useState<SectionKey>("baby_date");
 
@@ -37,22 +36,6 @@ export function PosterBuilder() {
     const year = String(spec.baby.year).padStart(4, "0");
     return `${year}-${month}-${day}`;
   }, [spec.baby.month, spec.baby.day, spec.baby.year]);
-
-  const timeOptions = useMemo(() => {
-    const options: string[] = [];
-    for (let hour = 0; hour < 24; hour += 1) {
-      for (let minute = 0; minute < 60; minute += 5) {
-        const period = hour >= 12 ? "PM" : "AM";
-        const hour12 = hour % 12 || 12;
-        const mm = String(minute).padStart(2, "0");
-        options.push(`${String(hour12).padStart(2, "0")}:${mm} ${period}`);
-      }
-    }
-    if (!options.includes(spec.baby.time)) {
-      options.unshift(spec.baby.time);
-    }
-    return options;
-  }, [spec.baby.time]);
 
   function patchBaby<K extends keyof PosterDesignSpec["baby"]>(key: K, value: PosterDesignSpec["baby"][K]) {
     setSpec((prev) => ({
@@ -163,59 +146,14 @@ export function PosterBuilder() {
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(420px,520px)] xl:gap-6">
           <section className={`${mobileView === "preview" ? "block" : "hidden"} lg:block`}>
             <div className="lg:sticky lg:top-[96px]">
-              <div className="rounded-2xl border border-stone-300/80 bg-[#eceae7] p-3 shadow-sm sm:p-4 lg:max-h-[calc(100vh-96px)] lg:overflow-auto">
-                <div className="flex flex-wrap items-center gap-2 border-b border-stone-300/70 pb-3">
-                  <button
-                    type="button"
-                    onClick={() => setZoom(0.94)}
-                    className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60"
-                  >
-                    Fit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setZoom(1)}
-                    className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60"
-                  >
-                    100%
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setZoom((prev) => Math.max(0.6, Number((prev - 0.1).toFixed(2))))}
-                    className="rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-700 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60"
-                    aria-label="Zoom out preview"
-                  >
-                    −
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setZoom((prev) => Math.min(1.6, Number((prev + 0.1).toFixed(2))))}
-                    className="rounded-md border border-stone-300 bg-white px-2.5 py-1.5 text-sm font-semibold text-stone-700 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60"
-                    aria-label="Zoom in preview"
-                  >
-                    +
-                  </button>
-                  <div className="ml-auto">
-                    <button
-                      type="button"
-                      disabled
-                      aria-label="Download proof (coming soon)"
-                      className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-400"
-                      title="TODO: download proof export"
-                    >
-                      Download proof
-                    </button>
-                  </div>
-                </div>
-                <div className="pt-4">
-                  <PosterPreview spec={spec} zoom={zoom} />
-                </div>
+              <div className="rounded-2xl border border-stone-300/80 bg-[#eceae7] p-3 shadow-sm sm:p-4 lg:max-h-[calc(100vh-96px)]">
+                <PosterPreview spec={spec} />
               </div>
             </div>
           </section>
 
           <section className={`${mobileView === "edit" ? "block" : "hidden"} lg:block`}>
-            <div className="rounded-2xl border border-stone-300/80 bg-white p-4 shadow-sm sm:p-6">
+            <div className="rounded-2xl border border-stone-300/80 bg-white p-4 shadow-sm sm:p-6 lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto">
               <div className="mb-5 border-b border-stone-200 pb-3">
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-stone-600">Build Your Poster</p>
               </div>
@@ -275,13 +213,7 @@ export function PosterBuilder() {
                     </div>
                     <div>
                       <label htmlFor="time">Time Of Birth</label>
-                      <select id="time" value={spec.baby.time} onChange={(e) => patchBaby("time", e.target.value)}>
-                        {timeOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
+                      <input id="time" value={spec.baby.time} onChange={(e) => patchBaby("time", e.target.value)} />
                     </div>
                   </div>
                 )}
