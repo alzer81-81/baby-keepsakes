@@ -1,9 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import PDFDocument from "pdfkit";
-import SVGtoPDF from "svg-to-pdfkit";
-
 import { printSize } from "@/lib/poster-style";
 
 function mmToPoints(mm: number): number {
@@ -11,6 +8,8 @@ function mmToPoints(mm: number): number {
 }
 
 async function renderSvgToPdfBuffer(svgMarkup: string): Promise<Buffer> {
+  const PDFDocument = require("pdfkit");
+  const SVGtoPDF = require("svg-to-pdfkit");
   const width = mmToPoints(printSize.widthMm);
   const height = mmToPoints(printSize.heightMm);
 
