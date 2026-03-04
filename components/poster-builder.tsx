@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import { PosterPreview } from "@/components/poster-preview";
 import {
@@ -23,6 +23,8 @@ export function PosterBuilder() {
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
+  const [previewMaxHeightPx, setPreviewMaxHeightPx] = useState<number | null>(null);
+  const formCardRef = useRef<HTMLDivElement | null>(null);
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
     baby_date: true,
     birth: false,
@@ -156,6 +158,26 @@ export function PosterBuilder() {
     );
   }
 
+  useEffect(() => {
+    if (!formCardRef.current || typeof ResizeObserver === "undefined") return;
+
+    const formEl = formCardRef.current;
+    const updateHeight = () => {
+      const next = Math.round(formEl.getBoundingClientRect().height);
+      setPreviewMaxHeightPx(next > 0 ? next : null);
+    };
+
+    updateHeight();
+    const observer = new ResizeObserver(() => updateHeight());
+    observer.observe(formEl);
+    window.addEventListener("resize", updateHeight);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, []);
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#efedeb] text-stone-900">
       <header className="flex h-20 items-center justify-between border-b border-stone-300/70 bg-[#f4f2f0] px-3 sm:px-8">
@@ -194,12 +216,12 @@ export function PosterBuilder() {
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,500px)] xl:gap-6">
           <section className={`${mobileView === "preview" ? "block" : "hidden"} lg:block`}>
             <div className="lg:sticky lg:top-[96px] lg:max-h-[calc(100vh-96px)]">
-              <PosterPreview spec={spec} />
+              <PosterPreview spec={spec} maxHeightPx={previewMaxHeightPx ?? undefined} />
             </div>
           </section>
 
           <section className={`${mobileView === "edit" ? "block" : "hidden"} lg:block`}>
-            <div className="rounded-2xl border border-stone-300/80 bg-white p-4 shadow-sm sm:p-6 lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto">
+            <div ref={formCardRef} className="rounded-2xl border border-stone-300/80 bg-white p-4 shadow-sm sm:p-6 lg:max-h-[calc(100vh-96px)] lg:overflow-y-auto">
               <div className="mb-5 border-b border-stone-200 pb-3">
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-stone-600">Build Your Poster</p>
               </div>
