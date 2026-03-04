@@ -4,17 +4,17 @@ import Link from "next/link";
 export default function HomePage() {
   const cards = [
     {
-      icon: "✍︎",
+      icon: "/home-1.png",
       title: "Add Birth Details",
       text: "Enter your baby name, date, time, place of birth, and weight in a guided form."
     },
     {
-      icon: "🎨",
+      icon: "/home-2.png",
       title: "Style Your Poster",
       text: "Choose theme, typography, text style, and artwork while previewing every change live."
     },
     {
-      icon: "🖨",
+      icon: "/home-3.png",
       title: "Order With Confidence",
       text: "Checkout securely and we generate a print-ready keepsake file for production."
     }
@@ -41,23 +41,11 @@ export default function HomePage() {
           Build Your Keepsake Now
         </Link>
 
-        <div className="mt-10 grid w-full gap-3 sm:grid-cols-3 sm:gap-4">
-          <figure className="overflow-hidden rounded-2xl border border-stone-300/70 bg-white shadow-sm">
-            <Image src="/home-1.png" alt="Poster sample one" width={900} height={700} className="h-44 w-full object-cover sm:h-52" />
-          </figure>
-          <figure className="overflow-hidden rounded-2xl border border-stone-300/70 bg-white shadow-sm">
-            <Image src="/home-2.png" alt="Poster sample two" width={900} height={700} className="h-44 w-full object-cover sm:h-52" />
-          </figure>
-          <figure className="overflow-hidden rounded-2xl border border-stone-300/70 bg-white shadow-sm">
-            <Image src="/home-3.png" alt="Poster sample three" width={900} height={700} className="h-44 w-full object-cover sm:h-52" />
-          </figure>
-        </div>
-
-        <div className="mt-8 grid w-full gap-3 text-left sm:grid-cols-3 sm:gap-4">
+        <div className="mt-10 grid w-full gap-3 text-left sm:grid-cols-3 sm:gap-4">
           {cards.map((card) => (
             <article key={card.title} className="rounded-2xl border border-stone-300/70 bg-white/85 p-4 shadow-sm">
-              <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#fbe4ed] text-sm text-stone-700">
-                <span aria-hidden>{card.icon}</span>
+              <div className="mb-3 overflow-hidden rounded-lg border border-stone-200/80 bg-white">
+                <Image src={card.icon} alt={`${card.title} icon`} width={360} height={200} className="h-14 w-full object-cover" />
               </div>
               <h2 className="text-base font-bold text-stone-800">{card.title}</h2>
               <p className="mt-1 text-sm leading-relaxed text-stone-600">{card.text}</p>
