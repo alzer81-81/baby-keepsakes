@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getArtworkDataUri } from "@/lib/artwork";
+import { getArtworkInlineSvg } from "@/lib/artwork";
 import { PosterDesignSpec, sanitizeDesignSpec } from "@/lib/design-spec";
 import { sendPlaceholderSubmissionEmail } from "@/lib/email";
 import { generatePosterPdf } from "@/lib/pdf";
@@ -34,8 +34,8 @@ export async function POST(request: Request) {
     }
 
     const address = [addressLine1, addressLine2, city, postalCode, country].filter(Boolean).join(", ");
-    const embeddedArtworkDataUri = await getArtworkDataUri(spec.artwork);
-    const svg = renderPosterSvg(spec, "print", { embeddedArtworkDataUri: embeddedArtworkDataUri ?? undefined });
+    const embeddedArtworkInlineSvg = await getArtworkInlineSvg(spec.artwork);
+    const svg = renderPosterSvg(spec, "print", { embeddedArtworkInlineSvg: embeddedArtworkInlineSvg ?? undefined });
     const proofId = Number(`${Date.now()}`.slice(-9));
     const pdfPath = await generatePosterPdf(svg, proofId);
 
