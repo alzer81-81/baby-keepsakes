@@ -4,6 +4,9 @@ import { PosterDesignSpec, sanitizeDesignSpec } from "@/lib/design-spec";
 import { generatePosterPdfBuffer } from "@/lib/pdf";
 import { renderPosterSvg } from "@/lib/poster-renderer";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   try {
     const raw = (await request.json()) as PosterDesignSpec;
@@ -26,6 +29,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Download PDF error", error);
-    return NextResponse.json({ error: "Unable to generate PDF." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: `Unable to generate PDF: ${message}` }, { status: 500 });
   }
 }

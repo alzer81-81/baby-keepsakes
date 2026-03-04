@@ -5,6 +5,11 @@ import { chromium } from "playwright";
 
 import { printSize } from "@/lib/poster-style";
 
+const launchOptions = {
+  headless: true as const,
+  args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
+};
+
 function buildPosterHtml(svgMarkup: string, publicBaseHref: string): string {
   return `
       <!doctype html>
@@ -43,7 +48,7 @@ function buildPosterHtml(svgMarkup: string, publicBaseHref: string): string {
 
 export async function generatePosterPdfBuffer(svgMarkup: string): Promise<Buffer> {
   const publicBaseHref = pathToFileURL(path.join(process.cwd(), "public")).href;
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch(launchOptions);
 
   try {
     const page = await browser.newPage();
@@ -71,7 +76,7 @@ export async function generatePosterPdf(svgMarkup: string, orderId: number): Pro
   await mkdir(outputDir, { recursive: true });
   const outputPath = path.join(outputDir, `${orderId}.pdf`);
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch(launchOptions);
 
   try {
     const page = await browser.newPage();
