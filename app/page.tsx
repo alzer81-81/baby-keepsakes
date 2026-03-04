@@ -26,7 +26,7 @@ export default function HomePage() {
       <div className="pointer-events-none absolute -right-28 top-1/3 h-80 w-80 rounded-full bg-sky-200/40 blur-3xl" />
       <div className="pointer-events-none absolute bottom-[-120px] left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-emerald-200/40 blur-3xl" />
 
-      <section className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center text-center">
+      <section className="relative z-10 mx-auto flex w-full max-w-5xl flex-col items-center text-center">
         <Image src="/logo.png" alt="Baby Keepsakes logo" width={220} height={84} className="h-auto w-[170px] sm:w-[220px]" priority />
         <h1 className="mt-5 text-5xl font-extrabold leading-[1.05] text-stone-800 sm:text-6xl md:text-7xl">
           Build Your Birth Poster Keepsake
@@ -41,7 +41,19 @@ export default function HomePage() {
           Build Your Keepsake Now
         </Link>
 
-        <div className="mt-10 grid w-full gap-3 text-left sm:grid-cols-3 sm:gap-4">
+        <div className="mt-10 grid w-full gap-3 sm:grid-cols-3 sm:gap-4">
+          <figure className="overflow-hidden rounded-2xl border border-stone-300/70 bg-white shadow-sm">
+            <Image src="/home-1.png" alt="Poster sample one" width={900} height={700} className="h-44 w-full object-cover sm:h-52" />
+          </figure>
+          <figure className="overflow-hidden rounded-2xl border border-stone-300/70 bg-white shadow-sm">
+            <Image src="/home-2.png" alt="Poster sample two" width={900} height={700} className="h-44 w-full object-cover sm:h-52" />
+          </figure>
+          <figure className="overflow-hidden rounded-2xl border border-stone-300/70 bg-white shadow-sm">
+            <Image src="/home-3.png" alt="Poster sample three" width={900} height={700} className="h-44 w-full object-cover sm:h-52" />
+          </figure>
+        </div>
+
+        <div className="mt-8 grid w-full gap-3 text-left sm:grid-cols-3 sm:gap-4">
           {cards.map((card) => (
             <article key={card.title} className="rounded-2xl border border-stone-300/70 bg-white/85 p-4 shadow-sm">
               <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#fbe4ed] text-sm text-stone-700">
