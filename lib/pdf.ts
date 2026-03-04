@@ -1,105 +1,61 @@
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 
 import { printSize } from "@/lib/poster-style";
 
-const launchOptions = {
-  headless: true as const,
-  args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
-};
-
-async function launchChromium() {
-  if (process.env.VERCEL) {
-    process.env.PLAYWRIGHT_BROWSERS_PATH = "0";
-  }
-  const { chromium } = await import("playwright");
-  return chromium.launch(launchOptions);
+function mmToPoints(mm: number): number {
+  return (mm / 25.4) * 72;
 }
 
-function buildPosterHtml(svgMarkup: string, publicBaseHref: string): string {
-  return `
-      <!doctype html>
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <base href="${publicBaseHref}/" />
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;700;800&family=Montserrat:wght@400;500;700;800&family=Nunito:wght@400;600;700;800&family=Playfair+Display:wght@400;500;700;800&display=swap');
-            @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;700;800&family=Fira+Sans:wght@400;500;700;800&family=Libre+Baskerville:wght@400;700&family=Merriweather:wght@400;700;900&family=Poppins:wght@400;500;700;800&family=Quicksand:wght@400;500;700&family=Raleway:wght@400;500;700;800&family=Rubik:wght@400;500;700;800&display=swap');
-            html, body {
-              margin: 0;
-              padding: 0;
-              width: ${printSize.widthMm}mm;
-              height: ${printSize.heightMm}mm;
-            }
-            body {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              background: white;
-            }
-            svg {
-              width: ${printSize.widthMm}mm;
-              height: ${printSize.heightMm}mm;
-              display: block;
-            }
-          </style>
-        </head>
-        <body>
-          ${svgMarkup}
-        </body>
-      </html>
-    `;
+async function renderSvgToPdfBuffer(svgMarkup: string): Promise<Buffer> {
+  const pdfkitModuleName = "pdfkit";
+  const svgToPdfModuleName = "svg-to-pdfkit";
+
+  const [pdfkitModule, svgToPdfModule] = await Promise.all([import(pdfkitModuleName), import(svgToPdfModuleName)]);
+
+  const PDFDocumentCtor = (pdfkitModule as unknown as { default?: new (...args: unknown[]) => any }).default ?? (pdfkitModule as any);
+  const SVGtoPDF = (svgToPdfModule as unknown as { default?: (...args: unknown[]) => void }).default ?? (svgToPdfModule as any);
+
+  const width = mmToPoints(printSize.widthMm);
+  const height = mmToPoints(printSize.heightMm);
+
+  const doc = new PDFDocumentCtor({
+    autoFirstPage: false,
+    compress: true,
+    size: [width, height],
+    margins: { top: 0, right: 0, bottom: 0, left: 0 }
+  });
+
+  doc.addPage({ size: [width, height], margins: { top: 0, right: 0, bottom: 0, left: 0 } });
+
+  const chunks: Buffer[] = [];
+  const pdfDone = new Promise<Buffer>((resolve, reject) => {
+    doc.on("data", (chunk: Buffer) => chunks.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(chunks)));
+    doc.on("error", (error: Error) => reject(error));
+  });
+
+  SVGtoPDF(doc, svgMarkup, 0, 0, {
+    width,
+    height,
+    preserveAspectRatio: "xMidYMid meet"
+  });
+
+  doc.end();
+  return pdfDone;
 }
 
 export async function generatePosterPdfBuffer(svgMarkup: string): Promise<Buffer> {
-  const publicBaseHref = pathToFileURL(path.join(process.cwd(), "public")).href;
-  const browser = await launchChromium();
-
-  try {
-    const page = await browser.newPage();
-    const html = buildPosterHtml(svgMarkup, publicBaseHref);
-    await page.setContent(html, { waitUntil: "networkidle" });
-
-    const pdfBuffer = await page.pdf({
-      width: `${printSize.widthMm}mm`,
-      height: `${printSize.heightMm}mm`,
-      printBackground: true,
-      margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" }
-    });
-
-    return Buffer.from(pdfBuffer);
-  } finally {
-    await browser.close();
-  }
+  return renderSvgToPdfBuffer(svgMarkup);
 }
 
 export async function generatePosterPdf(svgMarkup: string, orderId: number): Promise<string> {
-  const outputDir = process.env.VERCEL
-    ? path.join("/tmp", "orders")
-    : path.join(process.cwd(), "storage", "orders");
-  const publicBaseHref = pathToFileURL(path.join(process.cwd(), "public")).href;
+  const outputDir = process.env.VERCEL ? path.join("/tmp", "orders") : path.join(process.cwd(), "storage", "orders");
   await mkdir(outputDir, { recursive: true });
+
   const outputPath = path.join(outputDir, `${orderId}.pdf`);
+  const pdfBuffer = await renderSvgToPdfBuffer(svgMarkup);
+  await writeFile(outputPath, pdfBuffer);
 
-  const browser = await launchChromium();
-
-  try {
-    const page = await browser.newPage();
-    const html = buildPosterHtml(svgMarkup, publicBaseHref);
-
-    await page.setContent(html, { waitUntil: "networkidle" });
-    await page.pdf({
-      path: outputPath,
-      width: `${printSize.widthMm}mm`,
-      height: `${printSize.heightMm}mm`,
-      printBackground: true,
-      margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" }
-    });
-
-    return outputPath;
-  } finally {
-    await browser.close();
-  }
+  return outputPath;
 }

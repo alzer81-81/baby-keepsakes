@@ -6,7 +6,6 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "postinstall": "PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"
@@ -16,14 +15,16 @@
     "@stripe/stripe-js": "^4.8.0",
     "next": "^15.2.0",
     "nodemailer": "^6.10.0",
-    "playwright": "^1.51.1",
+    "pdfkit": "^0.15.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "svg-to-pdfkit": "^0.1.8",
     "stripe": "^17.6.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.8",
     "@types/nodemailer": "^6.4.17",
+    "@types/pdfkit": "^0.17.3",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "autoprefixer": "^10.4.20",
