@@ -193,7 +193,7 @@ export function PosterBuilder() {
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,500px)] xl:gap-6">
           <section className={`${mobileView === "preview" ? "block" : "hidden"} lg:block`}>
-            <div className="lg:sticky lg:top-[96px] lg:h-[calc(100vh-96px)]">
+            <div className="lg:sticky lg:top-[96px] lg:max-h-[calc(100vh-96px)]">
               <PosterPreview spec={spec} />
             </div>
           </section>
