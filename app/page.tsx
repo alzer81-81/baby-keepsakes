@@ -35,27 +35,13 @@ export default function HomePage() {
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-stone-600 sm:text-xl">
             Personalize your baby poster in minutes with soft themes, beautiful type, and a live preview.
           </p>
-          <Link
-            href="/builder"
-            className="mt-10 inline-flex rounded-2xl bg-[#f3adc5] px-9 py-4 text-lg font-bold text-stone-800 shadow-lg shadow-rose-200/40 transition hover:bg-[#ee9fbb]"
-          >
-            Build Your Keepsake Now
+          <Link href="/builder" className="group mt-10 inline-block">
+            <span className="relative inline-flex rounded-[32px] bg-[#e887ad] p-[2px]">
+              <span className="inline-flex min-w-[320px] items-center justify-center rounded-[30px] bg-[#e39ab7] px-10 py-7 text-4xl font-extrabold leading-none text-stone-900 transition group-hover:bg-[#dc90ae] sm:min-w-[520px] sm:text-6xl">
+                Build Your Keepsake Now
+              </span>
+            </span>
           </Link>
-        </div>
-
-        <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-3 rounded-2xl border border-stone-300/70 bg-white/75 p-4 text-left shadow-sm sm:grid-cols-3 sm:gap-4 sm:p-5">
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[0.13em] text-stone-500">Print Ready</p>
-            <p className="mt-1 text-sm text-stone-700">High-resolution PDF output sized for keepsake printing.</p>
-          </div>
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[0.13em] text-stone-500">Live Preview</p>
-            <p className="mt-1 text-sm text-stone-700">See your edits update instantly as you customize details.</p>
-          </div>
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[0.13em] text-stone-500">Flexible Design</p>
-            <p className="mt-1 text-sm text-stone-700">Choose themes, text styles, artwork, and fonts quickly.</p>
-          </div>
         </div>
 
         <div className="mt-10 grid w-full gap-3 text-left sm:grid-cols-3 sm:gap-4">
@@ -68,7 +54,7 @@ export default function HomePage() {
           ))}
         </div>
 
-        <footer className="mt-12 rounded-2xl border border-stone-300/70 bg-white/80 px-5 py-6 shadow-sm sm:px-6">
+        <footer className="mt-12 px-2 py-5 sm:px-0">
           <div className="flex flex-col gap-4 text-sm text-stone-600 sm:flex-row sm:items-center sm:justify-between">
             <p>© {new Date().getFullYear()} Baby Keepsakes. Designed for timeless birth memories.</p>
             <div className="flex items-center gap-5">
