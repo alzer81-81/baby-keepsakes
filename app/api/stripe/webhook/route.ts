@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
+import { getArtworkDataUri } from "@/lib/artwork";
 import { prisma } from "@/lib/db";
 import { PosterDesignSpec } from "@/lib/design-spec";
 import { sendAdminOrderEmail } from "@/lib/email";
@@ -68,7 +69,8 @@ export async function POST(request: Request) {
     });
 
     try {
-      const svg = renderPosterSvg(spec, "print");
+      const embeddedArtworkDataUri = await getArtworkDataUri(spec.artwork);
+      const svg = renderPosterSvg(spec, "print", { embeddedArtworkDataUri: embeddedArtworkDataUri ?? undefined });
       const pdfPath = await generatePosterPdf(svg, orderId);
 
       await prisma.order.update({

@@ -1,4 +1,5 @@
 import { PosterArtwork, PosterDesignSpec, PosterTheme } from "@/lib/design-spec";
+import { artworkFileByType } from "@/lib/artwork-map";
 import { previewFontFamilies, printFontFamilies, printSize, resolveThemePalette } from "@/lib/poster-style";
 
 type RenderMode = "preview" | "print";
@@ -64,20 +65,9 @@ function esc(value: string): string {
     .replaceAll("'", "&#39;");
 }
 
-function renderArtwork(artwork: PosterArtwork, theme: PosterTheme, mode: RenderMode): string {
-  const artworkFile: Record<PosterArtwork, string> = {
-    lion: "animals_lion.svg",
-    bear: "animals_bear.svg",
-    cat: "animals_cat.svg",
-    panda: "animals_panda.svg",
-    dog: "animals_dog.svg",
-    fox: "animals_fox.svg",
-    bird: "animals_bird.svg",
-    bee: "animals_bee.svg"
-  };
-
+function renderArtwork(artwork: PosterArtwork, theme: PosterTheme, mode: RenderMode, embeddedDataUri?: string): string {
   const hrefPrefix = mode === "print" ? "artwork/" : "/artwork/";
-  const href = `${hrefPrefix}${artworkFile[artwork]}`;
+  const href = embeddedDataUri ?? `${hrefPrefix}${artworkFileByType[artwork]}`;
   const themeFilterByTheme: Record<PosterTheme, string> = {
     blush_meadow: "hue-rotate(0deg) saturate(1)",
     warm_peach: "hue-rotate(-30deg) saturate(1.18)",
@@ -98,7 +88,7 @@ function renderArtwork(artwork: PosterArtwork, theme: PosterTheme, mode: RenderM
   `;
 }
 
-export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "preview"): string {
+export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "preview", options?: { embeddedArtworkDataUri?: string }): string {
   const palette = resolveThemePalette(spec.theme, spec.textTone ?? "classic");
   const fontFamily = mode === "preview" ? previewFontFamilies[spec.font] : printFontFamilies[spec.font];
   const svgWidth = mode === "print" ? `${printSize.widthMm}mm` : "100%";
@@ -264,7 +254,7 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
   <text x="${topLeftCenterX}" y="${dayY}" text-anchor="middle" dominant-baseline="middle" style="font-family:${fontFamily};font-size:${daySize}px;font-weight:800;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:'lnum' 1,'tnum' 1;fill:${palette.day};">${day}</text>
   <text x="${topLeftCenterX}" y="${yearY}" text-anchor="middle" dominant-baseline="middle" textLength="${yearTargetWidth}" lengthAdjust="spacing" style="font-family:${fontFamily};font-size:${yearSize}px;font-weight:700;letter-spacing:${yearLetterSpacing}px;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:'lnum' 1,'tnum' 1;fill:${palette.year};">${year}</text>
 
-  ${renderArtwork(spec.artwork, spec.theme, mode)}
+  ${renderArtwork(spec.artwork, spec.theme, mode, options?.embeddedArtworkDataUri)}
 
   <rect x="0" y="105" width="216" height="99" fill="${palette.band}" />
   <line x1="0" y1="110" x2="216" y2="110" stroke="${palette.stitch}" stroke-width="0.9" stroke-dasharray="3 2" />

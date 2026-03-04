@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { PosterDesignSpec, sanitizeDesignSpec } from "@/lib/design-spec";
+import { getArtworkDataUri } from "@/lib/artwork";
 import { generatePosterPdfBuffer } from "@/lib/pdf";
 import { renderPosterSvg } from "@/lib/poster-renderer";
 
@@ -16,7 +17,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "First and last name are required." }, { status: 400 });
     }
 
-    const svg = renderPosterSvg(spec, "print");
+    const embeddedArtworkDataUri = await getArtworkDataUri(spec.artwork);
+    const svg = renderPosterSvg(spec, "print", { embeddedArtworkDataUri: embeddedArtworkDataUri ?? undefined });
     const pdf = await generatePosterPdfBuffer(svg);
     const filename = `${spec.baby.firstName}-${spec.baby.lastName}.pdf`.replace(/\s+/g, "-").toLowerCase();
 
