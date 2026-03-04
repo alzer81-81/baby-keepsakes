@@ -1,7 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { chromium } from "playwright";
 
 import { printSize } from "@/lib/poster-style";
 
@@ -10,8 +9,12 @@ const launchOptions = {
   args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"]
 };
 
-if (process.env.VERCEL && !process.env.PLAYWRIGHT_BROWSERS_PATH) {
-  process.env.PLAYWRIGHT_BROWSERS_PATH = "0";
+async function launchChromium() {
+  if (process.env.VERCEL) {
+    process.env.PLAYWRIGHT_BROWSERS_PATH = "0";
+  }
+  const { chromium } = await import("playwright");
+  return chromium.launch(launchOptions);
 }
 
 function buildPosterHtml(svgMarkup: string, publicBaseHref: string): string {
@@ -52,7 +55,7 @@ function buildPosterHtml(svgMarkup: string, publicBaseHref: string): string {
 
 export async function generatePosterPdfBuffer(svgMarkup: string): Promise<Buffer> {
   const publicBaseHref = pathToFileURL(path.join(process.cwd(), "public")).href;
-  const browser = await chromium.launch(launchOptions);
+  const browser = await launchChromium();
 
   try {
     const page = await browser.newPage();
@@ -80,7 +83,7 @@ export async function generatePosterPdf(svgMarkup: string, orderId: number): Pro
   await mkdir(outputDir, { recursive: true });
   const outputPath = path.join(outputDir, `${orderId}.pdf`);
 
-  const browser = await chromium.launch(launchOptions);
+  const browser = await launchChromium();
 
   try {
     const page = await browser.newPage();
