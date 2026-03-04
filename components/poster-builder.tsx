@@ -172,7 +172,9 @@ export function PosterBuilder() {
           <button
             type="button"
             onClick={() => setMobileView("edit")}
-            className={`rounded-lg px-3 py-2 text-sm font-semibold ${mobileView === "edit" ? "bg-stone-900 text-white" : "text-stone-700"}`}
+            className={`rounded-lg px-3 py-2 text-sm font-semibold ${
+              mobileView === "edit" ? "bg-[#e39ab7] text-stone-900" : "text-stone-700"
+            }`}
             aria-pressed={mobileView === "edit"}
           >
             Edit
@@ -181,7 +183,7 @@ export function PosterBuilder() {
             type="button"
             onClick={() => setMobileView("preview")}
             className={`rounded-lg px-3 py-2 text-sm font-semibold ${
-              mobileView === "preview" ? "bg-stone-900 text-white" : "text-stone-700"
+              mobileView === "preview" ? "bg-[#e39ab7] text-stone-900" : "text-stone-700"
             }`}
             aria-pressed={mobileView === "preview"}
           >

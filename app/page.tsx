@@ -37,7 +37,7 @@ export default function HomePage() {
           </p>
           <Link href="/builder" className="group mt-10 inline-block">
             <span className="relative inline-flex rounded-[32px] bg-[#e887ad] p-[2px]">
-              <span className="inline-flex min-w-[320px] items-center justify-center rounded-[30px] bg-[#e39ab7] px-10 py-7 text-4xl font-extrabold leading-none text-stone-900 transition group-hover:bg-[#dc90ae] sm:min-w-[520px] sm:text-6xl">
+              <span className="inline-flex min-w-[280px] items-center justify-center rounded-[30px] bg-[#e39ab7] px-9 py-4 text-lg font-extrabold leading-none text-stone-900 transition group-hover:bg-[#dc90ae] sm:min-w-[360px] sm:text-[2rem]">
                 Build Your Keepsake Now
               </span>
             </span>
