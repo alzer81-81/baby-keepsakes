@@ -24,7 +24,12 @@ export function PosterBuilder() {
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
-  const [openSection, setOpenSection] = useState<SectionKey>("baby_date");
+  const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
+    baby_date: true,
+    birth: false,
+    stats: false,
+    style: false
+  });
   const [flowStep, setFlowStep] = useState<FlowStep>("design");
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -104,19 +109,29 @@ export function PosterBuilder() {
     }
   }
 
-  function renderSection(title: string, key: SectionKey, children: ReactNode) {
-    const isOpen = openSection === key;
+  function toggleSection(key: SectionKey) {
+    setOpenSections((prev) => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  }
+
+  function renderSection(title: string, description: string, key: SectionKey, children: ReactNode) {
+    const isOpen = openSections[key];
 
     return (
-      <section className="rounded-2xl border border-stone-200 bg-stone-50/80 p-4 sm:p-5" onFocusCapture={() => setOpenSection(key)}>
+      <section className="rounded-2xl border border-stone-200 bg-stone-50/80 p-4 sm:p-5">
         <button
           type="button"
           className="flex w-full items-center justify-between text-left"
-          onClick={() => setOpenSection(key)}
+          onClick={() => toggleSection(key)}
           aria-expanded={isOpen}
           aria-controls={`section-${key}`}
         >
-          <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-stone-700">{title}</h2>
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-stone-700">{title}</h2>
+            <p className="mt-1 text-xs font-medium text-stone-400">{description}</p>
+          </div>
           <span className="text-stone-500" aria-hidden>
             {isOpen ? "−" : "+"}
           </span>
@@ -179,6 +194,7 @@ export function PosterBuilder() {
               <div className="space-y-4 sm:space-y-5">
                 {renderSection(
                   "Baby Date Details",
+                  "Enter your baby's name, birthday, and birth time.",
                   "baby_date",
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -238,6 +254,7 @@ export function PosterBuilder() {
 
                 {renderSection(
                   "Birth Details",
+                  "Add location information for where your baby was born.",
                   "birth",
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -257,6 +274,7 @@ export function PosterBuilder() {
 
                 {renderSection(
                   "Birth Stats",
+                  "Record weight details as pounds and ounces.",
                   "stats",
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -286,6 +304,7 @@ export function PosterBuilder() {
 
                 {renderSection(
                   "Style",
+                  "Choose colors, type, and artwork for the poster design.",
                   "style",
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
