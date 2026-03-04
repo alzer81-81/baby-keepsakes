@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ReactNode, useMemo, useState } from "react";
-import { loadStripe } from "@stripe/stripe-js";
 
 import { PosterPreview } from "@/components/poster-preview";
 import {
@@ -16,18 +15,24 @@ import {
   defaultDesignSpec
 } from "@/lib/design-spec";
 
-const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-  : null;
-
 type SectionKey = "baby_date" | "birth" | "stats" | "style";
+type FlowStep = "design" | "details";
 
 export function PosterBuilder() {
   const [spec, setSpec] = useState<PosterDesignSpec>(defaultDesignSpec);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
   const [openSection, setOpenSection] = useState<SectionKey>("baby_date");
+  const [flowStep, setFlowStep] = useState<FlowStep>("design");
+  const [customerName, setCustomerName] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
+  const [addressCity, setAddressCity] = useState("");
+  const [addressPostalCode, setAddressPostalCode] = useState("");
+  const [addressCountry, setAddressCountry] = useState("");
 
   const dateValue = useMemo(() => {
     const monthIndex = MONTH_OPTIONS.findIndex((m) => m === spec.baby.month);
@@ -47,41 +52,54 @@ export function PosterBuilder() {
     }));
   }
 
-  async function onCheckout() {
+  function onContinue() {
     setError(null);
+    setSuccess(null);
 
     if (!spec.baby.firstName.trim() || !spec.baby.lastName.trim()) {
       setError("First and last name are required.");
       return;
     }
 
-    setLoading(true);
+    setFlowStep("details");
+  }
 
+  async function onSendPlaceholder() {
+    setError(null);
+    setSuccess(null);
+
+    if (!customerName.trim() || !customerEmail.trim() || !addressLine1.trim() || !addressCity.trim() || !addressCountry.trim()) {
+      setError("Please complete name, email, address, city, and country.");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const res = await fetch("/api/checkout", {
+      const res = await fetch("/api/placeholder-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(spec)
+        body: JSON.stringify({
+          spec,
+          customerName,
+          customerEmail,
+          addressLine1,
+          addressLine2,
+          city: addressCity,
+          postalCode: addressPostalCode,
+          country: addressCountry
+        })
       });
 
       if (!res.ok) {
-        throw new Error("Unable to create checkout session.");
+        const data = (await res.json()) as { error?: string };
+        throw new Error(data.error ?? "Unable to send details.");
       }
 
-      const data = (await res.json()) as { sessionId: string; url: string };
-
-      if (stripePromise) {
-        const stripe = await stripePromise;
-        if (stripe) {
-          await stripe.redirectToCheckout({ sessionId: data.sessionId });
-          return;
-        }
-      }
-
-      window.location.href = data.url;
-    } catch (checkoutError) {
-      const message = checkoutError instanceof Error ? checkoutError.message : "Checkout failed";
+      setSuccess("Sent. Placeholder submission complete. Next step will be Stripe payment details.");
+    } catch (submitError) {
+      const message = submitError instanceof Error ? submitError.message : "Send failed";
       setError(message);
+    } finally {
       setLoading(false);
     }
   }
@@ -93,17 +111,17 @@ export function PosterBuilder() {
       <section className="rounded-2xl border border-stone-200 bg-stone-50/80 p-4 sm:p-5" onFocusCapture={() => setOpenSection(key)}>
         <button
           type="button"
-          className="flex w-full items-center justify-between text-left lg:cursor-default"
+          className="flex w-full items-center justify-between text-left"
           onClick={() => setOpenSection(key)}
           aria-expanded={isOpen}
           aria-controls={`section-${key}`}
         >
           <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-stone-700">{title}</h2>
-          <span className="text-stone-500 lg:hidden" aria-hidden>
+          <span className="text-stone-500" aria-hidden>
             {isOpen ? "−" : "+"}
           </span>
         </button>
-        <div id={`section-${key}`} className={`mt-4 space-y-4 ${isOpen ? "block" : "hidden"} lg:block`}>
+        <div id={`section-${key}`} className={`mt-4 space-y-4 ${isOpen ? "block" : "hidden"}`}>
           {children}
         </div>
       </section>
@@ -332,17 +350,94 @@ export function PosterBuilder() {
                   </div>
                 )}
 
+                {flowStep === "details" ? (
+                  <section className="rounded-2xl border border-stone-200 bg-stone-50/80 p-4 sm:p-5">
+                    <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-stone-700">Your Details</h2>
+                    <p className="mt-1 text-xs text-stone-500">
+                      Placeholder flow: this sends all details and the generated PDF to `alpower242@gmail.com`.
+                    </p>
+
+                    <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                      <div className="sm:col-span-2">
+                        <label htmlFor="customerName">
+                          Full Name <span aria-hidden>*</span>
+                        </label>
+                        <input id="customerName" value={customerName} onChange={(e) => setCustomerName(e.target.value)} required aria-required="true" />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label htmlFor="customerEmail">
+                          Email <span aria-hidden>*</span>
+                        </label>
+                        <input
+                          id="customerEmail"
+                          type="email"
+                          value={customerEmail}
+                          onChange={(e) => setCustomerEmail(e.target.value)}
+                          required
+                          aria-required="true"
+                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label htmlFor="addressLine1">
+                          Address Line 1 <span aria-hidden>*</span>
+                        </label>
+                        <input id="addressLine1" value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} required aria-required="true" />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label htmlFor="addressLine2">Address Line 2</label>
+                        <input id="addressLine2" value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} />
+                      </div>
+                      <div>
+                        <label htmlFor="addressCity">
+                          City <span aria-hidden>*</span>
+                        </label>
+                        <input id="addressCity" value={addressCity} onChange={(e) => setAddressCity(e.target.value)} required aria-required="true" />
+                      </div>
+                      <div>
+                        <label htmlFor="addressPostalCode">Postcode / ZIP</label>
+                        <input id="addressPostalCode" value={addressPostalCode} onChange={(e) => setAddressPostalCode(e.target.value)} />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label htmlFor="addressCountry">
+                          Country <span aria-hidden>*</span>
+                        </label>
+                        <input id="addressCountry" value={addressCountry} onChange={(e) => setAddressCountry(e.target.value)} required aria-required="true" />
+                      </div>
+                    </div>
+                  </section>
+                ) : null}
+
                 {error ? <p className="text-sm font-medium text-red-700">{error}</p> : null}
+                {success ? <p className="text-sm font-medium text-emerald-700">{success}</p> : null}
 
                 <div className="mt-2 pb-2 pt-4 lg:sticky lg:bottom-0 lg:bg-gradient-to-t lg:from-white lg:via-white lg:to-transparent">
-                  <button
-                    type="button"
-                    onClick={onCheckout}
-                    disabled={loading}
-                    className="inline-flex w-full items-center justify-center rounded-xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {loading ? "Preparing checkout..." : "Buy Print (€29.00)"}
-                  </button>
+                  {flowStep === "design" ? (
+                    <button
+                      type="button"
+                      onClick={onContinue}
+                      className="inline-flex w-full items-center justify-center rounded-xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60"
+                    >
+                      Continue
+                    </button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setFlowStep("design")}
+                        className="inline-flex w-1/3 items-center justify-center rounded-xl border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60"
+                      >
+                        Back
+                      </button>
+                      <button
+                        type="button"
+                        onClick={onSendPlaceholder}
+                        disabled={loading}
+                        className="inline-flex w-2/3 items-center justify-center rounded-xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {loading ? "Sending..." : "Send"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

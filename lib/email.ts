@@ -9,7 +9,7 @@ type OrderEmail = {
   pdfPath: string;
 };
 
-function hasSmtpConfig(): boolean {
+export function hasSmtpConfig(): boolean {
   return Boolean(process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS);
 }
 
@@ -46,5 +46,57 @@ export async function sendAdminOrderEmail(payload: OrderEmail): Promise<void> {
       `Theme: ${payload.theme}`,
       `PDF: ${payload.pdfPath}`
     ].join("\n")
+  });
+}
+
+type PlaceholderEmail = {
+  customerName: string;
+  customerEmail: string;
+  address: string;
+  babyName: string;
+  theme: string;
+  pdfPath: string;
+};
+
+export async function sendPlaceholderSubmissionEmail(payload: PlaceholderEmail): Promise<void> {
+  if (!hasSmtpConfig()) {
+    throw new Error("SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS.");
+  }
+
+  const to = "alpower242@gmail.com";
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT),
+    secure: Number(process.env.SMTP_PORT) === 465,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  });
+
+  await transporter.sendMail({
+    from: process.env.SMTP_USER,
+    to,
+    replyTo: payload.customerEmail,
+    subject: `Placeholder submission: ${payload.babyName}`,
+    text: [
+      "New placeholder order submission",
+      "",
+      `Customer name: ${payload.customerName}`,
+      `Customer email: ${payload.customerEmail}`,
+      `Address: ${payload.address}`,
+      `Baby name: ${payload.babyName}`,
+      `Theme: ${payload.theme}`,
+      `PDF path: ${payload.pdfPath}`,
+      "",
+      "Next step (placeholder): redirect this flow to Stripe checkout."
+    ].join("\n"),
+    attachments: [
+      {
+        filename: `birth-poster-proof-${Date.now()}.pdf`,
+        path: payload.pdfPath,
+        contentType: "application/pdf"
+      }
+    ]
   });
 }
