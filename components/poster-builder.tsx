@@ -191,12 +191,10 @@ export function PosterBuilder() {
           </button>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(420px,520px)] xl:gap-6">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,500px)] xl:gap-6">
           <section className={`${mobileView === "preview" ? "block" : "hidden"} lg:block`}>
-            <div className="lg:sticky lg:top-[96px]">
-              <div className="rounded-2xl border border-stone-300/80 bg-[#eceae7] p-3 shadow-sm sm:p-4 lg:max-h-[calc(100vh-96px)]">
-                <PosterPreview spec={spec} />
-              </div>
+            <div className="lg:sticky lg:top-[96px] lg:max-h-[calc(100vh-96px)]">
+              <PosterPreview spec={spec} />
             </div>
           </section>
 
@@ -382,8 +380,19 @@ export function PosterBuilder() {
                   </div>
                 )}
 
-                {error ? <p className="text-sm font-medium text-red-700">{error}</p> : null}
-                {success ? <p className="text-sm font-medium text-emerald-700">{success}</p> : null}
+                {error ? (
+                  <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p>
+                ) : null}
+                {success ? (
+                  <div
+                    className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-900 shadow-sm"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <p className="text-sm font-extrabold uppercase tracking-[0.08em] text-emerald-700">Download Started</p>
+                    <p className="mt-1 text-sm font-semibold">Your high-resolution PDF is on its way to your device.</p>
+                  </div>
+                ) : null}
 
                 <div className="mt-2 pb-2 pt-4 lg:sticky lg:bottom-0 lg:bg-gradient-to-t lg:from-white lg:via-white lg:to-transparent">
                   <button

@@ -65,6 +65,17 @@ function esc(value: string): string {
     .replaceAll("'", "&#39;");
 }
 
+function blendHexWithWhite(hex: string, alpha: number): string {
+  const safe = hex.replace("#", "");
+  if (safe.length !== 6) return hex;
+  const r = parseInt(safe.slice(0, 2), 16);
+  const g = parseInt(safe.slice(2, 4), 16);
+  const b = parseInt(safe.slice(4, 6), 16);
+  const mix = (channel: number) => Math.round(255 * (1 - alpha) + channel * alpha);
+  const toHex = (channel: number) => channel.toString(16).padStart(2, "0");
+  return `#${toHex(mix(r))}${toHex(mix(g))}${toHex(mix(b))}`;
+}
+
 function renderArtwork(artwork: PosterArtwork, theme: PosterTheme, mode: RenderMode, embeddedInlineSvg?: string): string {
   const hrefPrefix = mode === "print" ? "artwork/" : "/artwork/";
   const href = `${hrefPrefix}${artworkFileByType[artwork]}`;
@@ -98,6 +109,7 @@ function renderArtwork(artwork: PosterArtwork, theme: PosterTheme, mode: RenderM
 
 export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "preview", options?: { embeddedArtworkInlineSvg?: string }): string {
   const palette = resolveThemePalette(spec.theme, spec.textTone ?? "classic");
+  const posterBackground = blendHexWithWhite(palette.background, 0.42);
   const fontFamily = mode === "preview" ? previewFontFamilies[spec.font] : printFontFamilies[spec.font];
   const svgWidth = mode === "print" ? `${printSize.widthMm}mm` : "100%";
   const svgHeight = mode === "print" ? `${printSize.heightMm}mm` : "100%";
@@ -288,7 +300,7 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
 
   <g transform="translate(166 249)">
     <circle cx="0" cy="0" r="34" fill="${palette.badgeFill}" />
-    <line x1="15" y1="-34" x2="15" y2="34" stroke="${palette.background}" stroke-width="1.2" opacity="1" />
+    <line x1="15" y1="-34" x2="15" y2="34" stroke="${posterBackground}" stroke-width="1.2" opacity="1" />
     <text x="-4" y="13" text-anchor="middle" style="font-family:${fontFamily};font-size:${poundsFontSize}px;font-weight:700;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:'lnum' 1,'tnum' 1;fill:${palette.badgeText};">${pounds}</text>
     <text x="18" y="0" text-anchor="middle" transform="rotate(90 18 0)" style="font-family:${fontFamily};font-size:9.2px;font-weight:700;letter-spacing:0.48px;fill:${palette.background};">POUNDS</text>
     <text x="0" y="48" text-anchor="middle" style="font-family:${fontFamily};font-size:8px;font-weight:600;letter-spacing:0.72px;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:'lnum' 1,'tnum' 1;fill:${palette.badgeFill};">${ounces} OUNCES</text>
