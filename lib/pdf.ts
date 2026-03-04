@@ -8,8 +8,19 @@ function mmToPoints(mm: number): number {
 }
 
 async function renderSvgToPdfBuffer(svgMarkup: string): Promise<Buffer> {
-  const PDFDocument = require("pdfkit");
-  const SVGtoPDF = require("svg-to-pdfkit");
+  // Force CJS entry points in server runtimes to avoid ESM interop constructor issues.
+  const pdfKitModule = require("pdfkit/js/pdfkit.js");
+  const svgToPdfModule = require("svg-to-pdfkit");
+  const PDFDocument = pdfKitModule?.default ?? pdfKitModule;
+  const SVGtoPDF = svgToPdfModule?.default ?? svgToPdfModule;
+
+  if (typeof PDFDocument !== "function") {
+    throw new Error("pdfkit constructor is unavailable in runtime");
+  }
+  if (typeof SVGtoPDF !== "function") {
+    throw new Error("svg-to-pdfkit function is unavailable in runtime");
+  }
+
   const width = mmToPoints(printSize.widthMm);
   const height = mmToPoints(printSize.heightMm);
 
