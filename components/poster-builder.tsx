@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ReactNode, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
@@ -134,12 +135,7 @@ export function PosterBuilder() {
           <span>Back</span>
         </Link>
 
-        <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-md border border-stone-600 text-xs font-bold tracking-widest text-stone-700">
-            BK
-          </div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-700">Baby Keepsakes</p>
-        </div>
+        <Image src="/logo.png" alt="Baby Keepsakes logo" width={168} height={64} className="h-auto w-[120px] sm:w-[150px]" priority />
       </header>
 
       <div className="mx-auto w-full max-w-[1280px] px-3 py-4 sm:px-5 lg:px-6">
