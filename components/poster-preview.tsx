@@ -25,7 +25,7 @@ export function PosterPreview({ spec, zoom = 1, maxHeightPx }: Props) {
           />
         </div>
       </div>
-      <p className="mt-4 text-center text-xs uppercase tracking-[0.14em] text-stone-500">A4 portrait + 3mm bleed (216mm x 303mm)</p>
+      <p className="mt-4 px-2 text-center text-[11px] uppercase tracking-[0.1em] text-stone-500">A4 portrait + 3mm bleed (216mm x 303mm)</p>
     </div>
   );
 }
