@@ -121,9 +121,9 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
   const firstNameFit = fitText(firstNameRaw, nameLaneWidth, 22, 52, 1, 0.63);
   const middleNameFit = fitText(middleNameRaw || "-", nameLaneWidth * 0.6, 11, 22, 0.8, 0.63);
   const lastNameFit = fitText(lastNameRaw, nameLaneWidth * 0.82, 13, 30, 0.6, 0.63);
-  const hospitalFit = fitText(hospitalRaw, 98, 7, 10.5, 0.2, 0.52);
-  const cityFit = fitText(cityRaw, 110, 11, 19, 1.7, 0.62);
-  const countryFit = fitText(countryRaw, 100, 9, 12.5, 1.7, 0.62);
+  const hospitalFit = fitText(hospitalRaw, 126, 8.5, 11.8, 0.16, 0.52);
+  const cityFit = fitText(cityRaw, 128, 12.5, 21, 1, 0.62);
+  const countryFit = fitText(countryRaw, 122, 10, 14.2, 0.8, 0.62);
 
   const month = esc(monthRaw);
   const day = esc(dayRaw);
@@ -138,7 +138,7 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
   const poundsRaw = String(spec.baby.weightPounds);
   const pounds = esc(poundsRaw);
   const ounces = esc(String(spec.baby.weightOunces));
-  const poundsFontSize = fitFontSize(poundsRaw, 42, 28, 40, 0, 0.56);
+  const poundsFontSize = fitFontSize(poundsRaw, 40, 26, 36, 0, 0.56);
 
   let firstNameSize = firstNameFit.size;
   let secondLineSize = middleNameRaw
@@ -156,13 +156,13 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
   let daySize = fitFontSize(dayRaw, dateLaneRight - dateLaneLeft, 64, 80, 0, 0.58);
   let dayWidth = estimateTextWidth(dayRaw, daySize, 0, 0.58);
   dayWidth = clamp(dayWidth, 56, dateLaneRight - dateLaneLeft);
-  const monthTargetWidth = clamp(dayWidth * 0.92, 54, dayWidth - 2);
+  const monthTargetWidth = clamp(dayWidth * 1.02, 58, dayWidth + 2);
   const yearTargetWidth = clamp(dayWidth * 0.9, 46, dayWidth - 2);
 
   const monthSize = fitFontSize(monthRaw, monthTargetWidth, 10.5, 13.2, 0.8, 0.58);
   const yearSize = fitFontSize(yearRaw, dayWidth, 10, 12.8, 0, 0.58);
-  const monthLetterSpacing = clamp(0.85 - monthRaw.length * 0.02, 0.45, 0.78);
-  const yearLetterSpacing = 0.62;
+  const monthLetterSpacing = clamp(0.92 - monthRaw.length * 0.022, 0.5, 0.82);
+  const yearLetterSpacing = 0.46;
 
   const dayCenterY = topZoneTop + topZoneHeight * 0.56;
   const monthY = topZoneTop + topZoneHeight * 0.18;
@@ -192,9 +192,9 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
   const middleCenterY = (middleTop + middleBottom) / 2;
   const firstNameY = middleCenterY - (nameGap / 2 + secondLineSize / 2);
   const lastNameY = middleCenterY + (nameGap / 2 + firstNameSize / 2);
-  const firstNameSpacing = clamp(1.15 - firstNameRaw.length * 0.022, 0.2, 0.9);
-  const middleNameSpacing = clamp(0.55 - middleNameRaw.length * 0.015, 0.05, 0.45);
-  const lastNameSpacing = clamp(0.55 - lastNameRaw.length * 0.015, 0.05, 0.45);
+  const firstNameSpacing = clamp(1.05 - firstNameRaw.length * 0.02, 0.15, 0.78);
+  const middleNameSpacing = clamp(0.42 - middleNameRaw.length * 0.012, 0.03, 0.32);
+  const lastNameSpacing = clamp(0.42 - lastNameRaw.length * 0.012, 0.03, 0.32);
   const firstNameWidth = clamp(
     estimateTextWidth(firstNameFit.text, firstNameSize, firstNameSpacing, 0.63),
     nameLaneWidth * 0.92,
@@ -250,7 +250,7 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
   const hospitalY = bottomStart + line1;
   const cityY = hospitalY + gap12 + line2;
   const countryY = cityY + gap23 + line3;
-  const locationX = 28;
+  const locationCenterX = 66;
 
   return `
 <svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 216 303" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Birth poster preview">
@@ -258,7 +258,7 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
   <rect x="0" y="0" width="216" height="303" fill="${palette.background}" opacity="0.42" />
 
   <g transform="translate(${timeLaneX} ${topSectionCenterY}) rotate(-90)">
-    <text x="0" y="0" text-anchor="middle" dominant-baseline="middle" textLength="${timeSpan}" lengthAdjust="spacing" style="font-family:${fontFamily};font-size:9.2px;font-weight:600;letter-spacing:1.4px;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:'lnum' 1,'tnum' 1;fill:${palette.time};">${time}</text>
+    <text x="0" y="0" text-anchor="middle" dominant-baseline="middle" textLength="${timeSpan}" lengthAdjust="spacing" style="font-family:${fontFamily};font-size:9.2px;font-weight:600;letter-spacing:1.1px;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:'lnum' 1,'tnum' 1;fill:${palette.time};">${time}</text>
   </g>
   <text x="${topLeftCenterX}" y="${monthY}" text-anchor="middle" dominant-baseline="middle" textLength="${monthTargetWidth}" lengthAdjust="spacing" style="font-family:${fontFamily};font-size:${monthSize}px;font-weight:700;letter-spacing:${monthLetterSpacing}px;fill:${palette.month};">${month}</text>
   <text x="${topLeftCenterX}" y="${dayY}" text-anchor="middle" dominant-baseline="middle" style="font-family:${fontFamily};font-size:${daySize}px;font-weight:800;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:'lnum' 1,'tnum' 1;fill:${palette.day};">${day}</text>
@@ -275,7 +275,7 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
     hasMiddleName
       ? `<text x="${middleNameX}" y="${lastNameY}" text-anchor="start" dominant-baseline="middle" ${
           needsSecondLineCompress ? `textLength="${middleNameWidth}" lengthAdjust="spacingAndGlyphs"` : ""
-        } style="font-family:${fontFamily};font-size:${secondLineSize}px;font-weight:700;letter-spacing:${middleNameSpacing}px;fill:${palette.middleName};">${middleName}</text>
+        } style="font-family:${fontFamily};font-size:${secondLineSize}px;font-weight:700;letter-spacing:${middleNameSpacing}px;fill:${palette.lastName};fill-opacity:0.66;">${middleName}</text>
   <text x="${lastNameX}" y="${lastNameY}" text-anchor="start" dominant-baseline="middle" ${
     needsSecondLineCompress ? `textLength="${lastNameWidth}" lengthAdjust="spacingAndGlyphs"` : ""
   } style="font-family:${fontFamily};font-size:${secondLineSize}px;font-weight:700;letter-spacing:${lastNameSpacing}px;fill:${palette.lastName};">${lastName}</text>`
@@ -284,16 +284,16 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
         } style="font-family:${fontFamily};font-size:${secondLineSize}px;font-weight:700;letter-spacing:${lastNameSpacing}px;fill:${palette.lastName};">${lastName}</text>`
   }
 
-  <text x="${locationX}" y="${hospitalY}" style="font-family:${fontFamily};font-size:${hospitalSize}px;line-height:0.95;font-style:italic;font-weight:500;fill:${palette.hospital};">${hospital}</text>
-  <text x="${locationX}" y="${cityY}" style="font-family:${fontFamily};font-size:${citySize}px;line-height:0.95;font-weight:800;letter-spacing:0.95px;fill:${palette.city};stroke:${palette.city};stroke-width:0.14;stroke-dasharray:0.7 0.8;">${city}</text>
-  <text x="${locationX}" y="${countryY}" style="font-family:${fontFamily};font-size:${countrySize}px;line-height:0.95;font-weight:700;letter-spacing:0.75px;fill:${palette.country};stroke:${palette.country};stroke-width:0.1;stroke-dasharray:0.7 0.7;">${country}</text>
+  <text x="${locationCenterX}" y="${hospitalY}" text-anchor="middle" style="font-family:${fontFamily};font-size:${hospitalSize}px;line-height:0.95;font-style:italic;font-weight:500;fill:${palette.hospital};">${hospital}</text>
+  <text x="${locationCenterX}" y="${cityY}" text-anchor="middle" style="font-family:${fontFamily};font-size:${citySize}px;line-height:0.95;font-weight:800;letter-spacing:0.68px;fill:${palette.city};stroke:${palette.city};stroke-width:0.14;stroke-dasharray:0.7 0.8;">${city}</text>
+  <text x="${locationCenterX}" y="${countryY}" text-anchor="middle" style="font-family:${fontFamily};font-size:${countrySize}px;line-height:0.95;font-weight:700;letter-spacing:0.56px;fill:${palette.country};stroke:${palette.country};stroke-width:0.1;stroke-dasharray:0.7 0.7;">${country}</text>
 
   <g transform="translate(166 249)">
     <circle cx="0" cy="0" r="34" fill="${palette.badgeFill}" />
     <line x1="15" y1="-34" x2="15" y2="34" stroke="${palette.background}" stroke-width="1.2" opacity="0.6" />
     <text x="-4" y="13" text-anchor="middle" style="font-family:${fontFamily};font-size:${poundsFontSize}px;font-weight:700;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:'lnum' 1,'tnum' 1;fill:${palette.badgeText};">${pounds}</text>
-    <text x="18" y="0" text-anchor="middle" transform="rotate(90 18 0)" style="font-family:${fontFamily};font-size:10px;font-weight:700;letter-spacing:0.72px;fill:${palette.background};">POUNDS</text>
-    <text x="0" y="48" text-anchor="middle" style="font-family:${fontFamily};font-size:8px;font-weight:600;letter-spacing:1px;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:'lnum' 1,'tnum' 1;fill:${palette.badgeFill};">${ounces} OUNCES</text>
+    <text x="18" y="0" text-anchor="middle" transform="rotate(90 18 0)" style="font-family:${fontFamily};font-size:9.2px;font-weight:700;letter-spacing:0.48px;fill:${palette.background};">POUNDS</text>
+    <text x="0" y="48" text-anchor="middle" style="font-family:${fontFamily};font-size:8px;font-weight:600;letter-spacing:0.72px;font-variant-numeric:lining-nums tabular-nums;font-feature-settings:'lnum' 1,'tnum' 1;fill:${palette.badgeFill};">${ounces} OUNCES</text>
   </g>
 </svg>
 `.trim();

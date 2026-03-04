@@ -19,7 +19,7 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
   : null;
 
-type SectionKey = "baby" | "birth" | "stats" | "design" | "advanced";
+type SectionKey = "baby_date" | "birth" | "stats" | "style";
 
 export function PosterBuilder() {
   const [spec, setSpec] = useState<PosterDesignSpec>(defaultDesignSpec);
@@ -27,12 +27,7 @@ export function PosterBuilder() {
   const [loading, setLoading] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
-  const [openSection, setOpenSection] = useState<SectionKey>("baby");
-
-  const fullName = useMemo(() => {
-    const middle = spec.baby.middleName?.trim();
-    return [spec.baby.firstName, middle, spec.baby.lastName].filter(Boolean).join(" ").trim();
-  }, [spec]);
+  const [openSection, setOpenSection] = useState<SectionKey>("baby_date");
 
   const dateValue = useMemo(() => {
     const monthIndex = MONTH_OPTIONS.findIndex((m) => m === spec.baby.month);
@@ -41,6 +36,22 @@ export function PosterBuilder() {
     const year = String(spec.baby.year).padStart(4, "0");
     return `${year}-${month}-${day}`;
   }, [spec.baby.month, spec.baby.day, spec.baby.year]);
+
+  const timeOptions = useMemo(() => {
+    const options: string[] = [];
+    for (let hour = 0; hour < 24; hour += 1) {
+      for (let minute = 0; minute < 60; minute += 5) {
+        const period = hour >= 12 ? "PM" : "AM";
+        const hour12 = hour % 12 || 12;
+        const mm = String(minute).padStart(2, "0");
+        options.push(`${String(hour12).padStart(2, "0")}:${mm} ${period}`);
+      }
+    }
+    if (!options.includes(spec.baby.time)) {
+      options.unshift(spec.baby.time);
+    }
+    return options;
+  }, [spec.baby.time]);
 
   function patchBaby<K extends keyof PosterDesignSpec["baby"]>(key: K, value: PosterDesignSpec["baby"][K]) {
     setSpec((prev) => ({
@@ -211,13 +222,12 @@ export function PosterBuilder() {
             <div className="rounded-2xl border border-stone-300/80 bg-white p-4 shadow-sm sm:p-6">
               <div className="mb-5 border-b border-stone-200 pb-3">
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-stone-600">Build Your Poster</p>
-                <p className="mt-1 text-sm text-stone-500">Complete the details below and see updates instantly.</p>
               </div>
 
               <div className="space-y-4 sm:space-y-5">
                 {renderSection(
-                  "Baby Details",
-                  "baby",
+                  "Baby Date Details",
+                  "baby_date",
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label htmlFor="firstName">
@@ -241,13 +251,6 @@ export function PosterBuilder() {
                       </label>
                       <input id="lastName" value={spec.baby.lastName} onChange={(e) => patchBaby("lastName", e.target.value)} required aria-required="true" />
                     </div>
-                  </div>
-                )}
-
-                {renderSection(
-                  "Birth Details",
-                  "birth",
-                  <>
                     <div>
                       <label htmlFor="dateOfBirth">Date Of Birth</label>
                       <input
@@ -273,29 +276,37 @@ export function PosterBuilder() {
                           }));
                         }}
                       />
-                      <p className="mt-1 text-xs text-stone-500">Use the picker to keep month/day/year aligned.</p>
                     </div>
+                    <div>
+                      <label htmlFor="time">Time Of Birth</label>
+                      <select id="time" value={spec.baby.time} onChange={(e) => patchBaby("time", e.target.value)}>
+                        {timeOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label htmlFor="time">Time Of Birth</label>
-                        <input id="time" value={spec.baby.time} onChange={(e) => patchBaby("time", e.target.value)} />
-                        <p className="mt-1 text-xs text-stone-500">Example: 04:06 AM</p>
-                      </div>
-                      <div>
-                        <label htmlFor="hospital">Hospital</label>
-                        <input id="hospital" value={spec.baby.hospital} onChange={(e) => patchBaby("hospital", e.target.value)} />
-                      </div>
-                      <div>
-                        <label htmlFor="city">City</label>
-                        <input id="city" value={spec.baby.city} onChange={(e) => patchBaby("city", e.target.value)} />
-                      </div>
-                      <div>
-                        <label htmlFor="country">Country</label>
-                        <input id="country" value={spec.baby.country} onChange={(e) => patchBaby("country", e.target.value)} />
-                      </div>
+                {renderSection(
+                  "Birth Details",
+                  "birth",
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="hospital">Hospital</label>
+                      <input id="hospital" value={spec.baby.hospital} onChange={(e) => patchBaby("hospital", e.target.value)} />
                     </div>
-                  </>
+                    <div>
+                      <label htmlFor="city">City</label>
+                      <input id="city" value={spec.baby.city} onChange={(e) => patchBaby("city", e.target.value)} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label htmlFor="country">Country</label>
+                      <input id="country" value={spec.baby.country} onChange={(e) => patchBaby("country", e.target.value)} />
+                    </div>
+                  </div>
                 )}
 
                 {renderSection(
@@ -328,8 +339,8 @@ export function PosterBuilder() {
                 )}
 
                 {renderSection(
-                  "Design",
-                  "design",
+                  "Style",
+                  "style",
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label htmlFor="theme">Theme</label>
@@ -390,16 +401,6 @@ export function PosterBuilder() {
                         <option value="bee">Bee</option>
                       </select>
                     </div>
-                  </div>
-                )}
-
-                {renderSection(
-                  "Advanced",
-                  "advanced",
-                  <div className="rounded-xl border border-stone-200 bg-white p-4 text-sm text-stone-700">
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">Poster Title (auto-generated)</p>
-                    <p className="mt-1 text-base font-semibold text-stone-900">{fullName || "Unnamed"}</p>
-                    <p className="mt-1 text-xs text-stone-500">Generated from first, middle, and surname to keep naming consistent.</p>
                   </div>
                 )}
 
