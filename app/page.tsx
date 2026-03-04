@@ -44,9 +44,7 @@ export default function HomePage() {
         <div className="mt-10 grid w-full gap-3 text-left sm:grid-cols-3 sm:gap-4">
           {cards.map((card) => (
             <article key={card.title} className="rounded-2xl border border-stone-300/70 bg-white/85 p-4 shadow-sm">
-              <div className="mb-3 overflow-hidden rounded-lg border border-stone-200/80 bg-white">
-                <Image src={card.icon} alt={`${card.title} icon`} width={360} height={200} className="h-14 w-full object-cover" />
-              </div>
+              <Image src={card.icon} alt={`${card.title} icon`} width={70} height={70} className="mb-3 h-auto w-full max-w-[70px]" />
               <h2 className="text-base font-bold text-stone-800">{card.title}</h2>
               <p className="mt-1 text-sm leading-relaxed text-stone-600">{card.text}</p>
             </article>
