@@ -190,7 +190,7 @@ export function PosterBuilder() {
       </header>
 
       <div className="mx-auto w-full max-w-[1280px] px-3 py-4 sm:px-5 lg:px-6">
-        <div className="sticky top-2 z-30 mb-4 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 backdrop-blur lg:hidden">
+        <div className="sticky top-[30px] z-40 mb-4 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 shadow-sm backdrop-blur lg:hidden">
           <button
             type="button"
             onClick={() => setMobileView("edit")}
@@ -231,30 +231,30 @@ export function PosterBuilder() {
                   "Baby Date Details",
                   "Enter your baby's name, birthday, and birth time.",
                   "baby_date",
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
+                  <div className="grid min-w-0 gap-4 md:grid-cols-2">
+                    <div className="min-w-0">
                       <label htmlFor="firstName">
                         First Name <span aria-hidden>*</span>
                       </label>
                       <input id="firstName" value={spec.baby.firstName} onChange={(e) => patchBaby("firstName", e.target.value)} required aria-required="true" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <label htmlFor="middleName">Middle Name</label>
                       <input id="middleName" value={spec.baby.middleName} onChange={(e) => patchBaby("middleName", e.target.value)} />
                     </div>
-                    <div className="sm:col-span-2">
+                    <div className="min-w-0 sm:col-span-2">
                       <label htmlFor="lastName">
                         Surname <span aria-hidden>*</span>
                       </label>
                       <input id="lastName" value={spec.baby.lastName} onChange={(e) => patchBaby("lastName", e.target.value)} required aria-required="true" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <label htmlFor="dateOfBirth">Date Of Birth</label>
-                      <div className="relative">
+                      <div className="relative w-full max-w-full overflow-hidden">
                         <input
                           id="dateOfBirth"
                           type="date"
-                          className="pr-10 text-left [text-align-last:left]"
+                          className="w-full max-w-full appearance-none pr-10 text-left [text-align-last:left]"
                           value={dateValue}
                           onChange={(e) => {
                             const value = e.target.value;
@@ -282,15 +282,15 @@ export function PosterBuilder() {
                         </span>
                       </div>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <label htmlFor="time">Time Of Birth</label>
-                      <div className="relative">
+                      <div className="relative w-full max-w-full overflow-hidden">
                         <input
                           id="time"
                           type="time"
                           inputMode="numeric"
                           step={60}
-                          className="pr-10 text-left [text-align-last:left]"
+                          className="w-full max-w-full appearance-none pr-10 text-left [text-align-last:left]"
                           value={timeInputValue}
                           onChange={(e) => patchBaby("time", formatTimeForPoster(e.target.value))}
                         />
@@ -308,16 +308,16 @@ export function PosterBuilder() {
                   "Birth Details",
                   "Add location information for where your baby was born.",
                   "birth",
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
+                  <div className="grid min-w-0 gap-4 md:grid-cols-2">
+                    <div className="min-w-0">
                       <label htmlFor="hospital">Hospital</label>
                       <input id="hospital" value={spec.baby.hospital} onChange={(e) => patchBaby("hospital", e.target.value)} />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <label htmlFor="city">City</label>
                       <input id="city" value={spec.baby.city} onChange={(e) => patchBaby("city", e.target.value)} />
                     </div>
-                    <div className="sm:col-span-2">
+                    <div className="min-w-0 sm:col-span-2">
                       <label htmlFor="country">Country</label>
                       <input id="country" value={spec.baby.country} onChange={(e) => patchBaby("country", e.target.value)} />
                     </div>
@@ -328,8 +328,8 @@ export function PosterBuilder() {
                   "Birth Stats",
                   "Record weight details as pounds and ounces.",
                   "stats",
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
+                  <div className="grid min-w-0 gap-4 md:grid-cols-2">
+                    <div className="min-w-0">
                       <label htmlFor="weightPounds">Weight (lb)</label>
                       <input
                         id="weightPounds"
@@ -340,7 +340,7 @@ export function PosterBuilder() {
                         onChange={(e) => patchBaby("weightPounds", Number(e.target.value))}
                       />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <label htmlFor="weightOunces">Weight (oz)</label>
                       <input
                         id="weightOunces"
@@ -358,8 +358,8 @@ export function PosterBuilder() {
                   "Style",
                   "Choose colors, type, and artwork for the poster design.",
                   "style",
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
+                  <div className="grid min-w-0 gap-4 md:grid-cols-2">
+                    <div className="min-w-0">
                       <label htmlFor="theme">Theme</label>
                       <select id="theme" value={spec.theme} onChange={(e) => setSpec((prev) => ({ ...prev, theme: e.target.value as PosterTheme }))}>
                         <option value="blush_meadow">Blush Meadow</option>
@@ -370,7 +370,7 @@ export function PosterBuilder() {
                         <option value="mono_ink">Mono Ink</option>
                       </select>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <label htmlFor="textTone">Text Color Style</label>
                       <select
                         id="textTone"
@@ -382,7 +382,7 @@ export function PosterBuilder() {
                         <option value="bold">Bold</option>
                       </select>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <label htmlFor="font">Font</label>
                       <select id="font" value={spec.font} onChange={(e) => setSpec((prev) => ({ ...prev, font: e.target.value as PosterFont }))}>
                         <option value="playfair">Playfair Display</option>
@@ -401,7 +401,7 @@ export function PosterBuilder() {
                         <option value="fira_sans">Fira Sans</option>
                       </select>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <label htmlFor="artwork">Artwork</label>
                       <select id="artwork" value={spec.artwork} onChange={(e) => setSpec((prev) => ({ ...prev, artwork: e.target.value as PosterArtwork }))}>
                         <option value="lion">Lion</option>
