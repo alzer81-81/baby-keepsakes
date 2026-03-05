@@ -348,7 +348,6 @@ export function PosterBuilder() {
                       </label>
                       <input
                         id="firstName"
-                        style={{ fontFamily: formFontFamily }}
                         value={spec.baby.firstName}
                         onFocus={() => clearTextFieldOnFirstFocus("firstName")}
                         onChange={(e) => patchBaby("firstName", e.target.value)}
@@ -360,7 +359,6 @@ export function PosterBuilder() {
                       <label htmlFor="middleName">Middle Name</label>
                       <input
                         id="middleName"
-                        style={{ fontFamily: formFontFamily }}
                         value={spec.baby.middleName}
                         onFocus={() => clearTextFieldOnFirstFocus("middleName")}
                         onChange={(e) => patchBaby("middleName", e.target.value)}
@@ -372,7 +370,6 @@ export function PosterBuilder() {
                       </label>
                       <input
                         id="lastName"
-                        style={{ fontFamily: formFontFamily }}
                         value={spec.baby.lastName}
                         onFocus={() => clearTextFieldOnFirstFocus("lastName")}
                         onChange={(e) => patchBaby("lastName", e.target.value)}
@@ -445,7 +442,6 @@ export function PosterBuilder() {
                       <label htmlFor="hospital">Hospital</label>
                       <input
                         id="hospital"
-                        style={{ fontFamily: formFontFamily }}
                         value={spec.baby.hospital}
                         onFocus={() => clearTextFieldOnFirstFocus("hospital")}
                         onChange={(e) => patchBaby("hospital", e.target.value)}
@@ -455,7 +451,6 @@ export function PosterBuilder() {
                       <label htmlFor="city">City</label>
                       <input
                         id="city"
-                        style={{ fontFamily: formFontFamily }}
                         value={spec.baby.city}
                         onFocus={() => clearTextFieldOnFirstFocus("city")}
                         onChange={(e) => patchBaby("city", e.target.value)}
@@ -465,7 +460,6 @@ export function PosterBuilder() {
                       <label htmlFor="country">Country</label>
                       <input
                         id="country"
-                        style={{ fontFamily: formFontFamily }}
                         value={spec.baby.country}
                         onFocus={() => clearTextFieldOnFirstFocus("country")}
                         onChange={(e) => patchBaby("country", e.target.value)}
@@ -541,7 +535,12 @@ export function PosterBuilder() {
                     </div>
                     <div className="min-w-0">
                       <label htmlFor="font">Font</label>
-                      <select id="font" value={spec.font} onChange={(e) => setSpec((prev) => ({ ...prev, font: e.target.value as PosterFont }))}>
+                      <select
+                        id="font"
+                        style={{ fontFamily: formFontFamily }}
+                        value={spec.font}
+                        onChange={(e) => setSpec((prev) => ({ ...prev, font: e.target.value as PosterFont }))}
+                      >
                         <option value="playfair">Playfair Display</option>
                         <option value="montserrat">Montserrat</option>
                         <option value="lora">Lora</option>
