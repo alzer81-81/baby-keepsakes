@@ -24,6 +24,7 @@ export function PosterBuilder() {
   const [loading, setLoading] = useState(false);
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
   const [isMobileClient, setIsMobileClient] = useState(false);
+  const [isTogglePinned, setIsTogglePinned] = useState(false);
   const [previewMaxHeightPx, setPreviewMaxHeightPx] = useState<number | null>(null);
   const [clearedFields, setClearedFields] = useState<Set<keyof PosterDesignSpec["baby"]>>(new Set());
   const formCardRef = useRef<HTMLDivElement | null>(null);
@@ -256,6 +257,23 @@ export function PosterBuilder() {
     return () => window.removeEventListener("resize", setMobile);
   }, []);
 
+  useEffect(() => {
+    const onScroll = () => {
+      if (!window.matchMedia("(max-width: 1023px)").matches) {
+        setIsTogglePinned(false);
+        return;
+      }
+      setIsTogglePinned(window.scrollY > 110);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
   return (
     <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#efedeb] text-stone-900">
       <header className="flex h-20 items-center justify-between border-b border-stone-300/70 bg-[#f4f2f0] px-3 sm:px-8">
@@ -268,7 +286,11 @@ export function PosterBuilder() {
       </header>
 
       <div className="mx-auto w-full max-w-[1280px] px-3 py-4 sm:px-5 lg:px-6">
-        <div className="sticky top-[10px] z-40 mb-2 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 shadow-sm backdrop-blur transition-all duration-200 lg:hidden">
+        <div
+          className={`z-40 mb-2 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 shadow-sm backdrop-blur transition-all duration-200 lg:hidden ${
+            isTogglePinned ? "fixed left-3 right-3 top-[10px]" : "relative"
+          }`}
+        >
           <button
             type="button"
             onClick={() => setMobileView("edit")}
@@ -290,6 +312,7 @@ export function PosterBuilder() {
             Preview
           </button>
         </div>
+        {isTogglePinned ? <div className="mb-2 h-[52px] lg:hidden" /> : null}
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,500px)] xl:gap-6">
           <section className={`${mobileView === "preview" ? "block pt-0" : "hidden"} lg:block`}>
             <div className="lg:sticky lg:top-[96px] lg:max-h-[calc(100vh-96px)]">
