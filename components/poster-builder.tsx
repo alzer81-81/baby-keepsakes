@@ -14,6 +14,7 @@ import {
   PosterTheme,
   defaultDesignSpec
 } from "@/lib/design-spec";
+import { previewFontFamilies, resolveThemePalette } from "@/lib/poster-style";
 
 type SectionKey = "baby_date" | "birth" | "stats" | "style";
 
@@ -23,7 +24,6 @@ export function PosterBuilder() {
   const [loading, setLoading] = useState(false);
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
   const [isMobileClient, setIsMobileClient] = useState(false);
-  const [isTogglePinned, setIsTogglePinned] = useState(false);
   const [previewMaxHeightPx, setPreviewMaxHeightPx] = useState<number | null>(null);
   const [clearedFields, setClearedFields] = useState<Set<keyof PosterDesignSpec["baby"]>>(new Set());
   const formCardRef = useRef<HTMLDivElement | null>(null);
@@ -62,6 +62,8 @@ export function PosterBuilder() {
 
     return "04:06";
   }, [spec.baby.time]);
+  const formFontFamily = useMemo(() => previewFontFamilies[spec.font], [spec.font]);
+  const activePalette = useMemo(() => resolveThemePalette(spec.theme, spec.textTone), [spec.theme, spec.textTone]);
 
   function patchBaby<K extends keyof PosterDesignSpec["baby"]>(key: K, value: PosterDesignSpec["baby"][K]) {
     setSpec((prev) => ({
@@ -254,23 +256,6 @@ export function PosterBuilder() {
     return () => window.removeEventListener("resize", setMobile);
   }, []);
 
-  useEffect(() => {
-    const onScroll = () => {
-      if (!window.matchMedia("(max-width: 1023px)").matches) {
-        setIsTogglePinned(false);
-        return;
-      }
-      setIsTogglePinned(window.scrollY > 120);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, []);
-
   return (
     <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#efedeb] text-stone-900">
       <header className="flex h-20 items-center justify-between border-b border-stone-300/70 bg-[#f4f2f0] px-3 sm:px-8">
@@ -283,11 +268,7 @@ export function PosterBuilder() {
       </header>
 
       <div className="mx-auto w-full max-w-[1280px] px-3 py-4 sm:px-5 lg:px-6">
-        <div
-          className={`z-40 mb-4 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 shadow-sm backdrop-blur lg:hidden ${
-            isTogglePinned ? "fixed left-3 right-3 top-[30px]" : "relative"
-          }`}
-        >
+        <div className="sticky top-[10px] z-40 mb-2 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 shadow-sm backdrop-blur transition-all duration-200 lg:hidden">
           <button
             type="button"
             onClick={() => setMobileView("edit")}
@@ -309,7 +290,6 @@ export function PosterBuilder() {
             Preview
           </button>
         </div>
-        {isTogglePinned ? <div className="mb-4 h-[52px] lg:hidden" /> : null}
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,500px)] xl:gap-6">
           <section className={`${mobileView === "preview" ? "block pt-0" : "hidden"} lg:block`}>
             <div className="lg:sticky lg:top-[96px] lg:max-h-[calc(100vh-96px)]">
@@ -345,6 +325,7 @@ export function PosterBuilder() {
                       </label>
                       <input
                         id="firstName"
+                        style={{ fontFamily: formFontFamily }}
                         value={spec.baby.firstName}
                         onFocus={() => clearTextFieldOnFirstFocus("firstName")}
                         onChange={(e) => patchBaby("firstName", e.target.value)}
@@ -356,6 +337,7 @@ export function PosterBuilder() {
                       <label htmlFor="middleName">Middle Name</label>
                       <input
                         id="middleName"
+                        style={{ fontFamily: formFontFamily }}
                         value={spec.baby.middleName}
                         onFocus={() => clearTextFieldOnFirstFocus("middleName")}
                         onChange={(e) => patchBaby("middleName", e.target.value)}
@@ -367,6 +349,7 @@ export function PosterBuilder() {
                       </label>
                       <input
                         id="lastName"
+                        style={{ fontFamily: formFontFamily }}
                         value={spec.baby.lastName}
                         onFocus={() => clearTextFieldOnFirstFocus("lastName")}
                         onChange={(e) => patchBaby("lastName", e.target.value)}
@@ -439,6 +422,7 @@ export function PosterBuilder() {
                       <label htmlFor="hospital">Hospital</label>
                       <input
                         id="hospital"
+                        style={{ fontFamily: formFontFamily }}
                         value={spec.baby.hospital}
                         onFocus={() => clearTextFieldOnFirstFocus("hospital")}
                         onChange={(e) => patchBaby("hospital", e.target.value)}
@@ -446,12 +430,19 @@ export function PosterBuilder() {
                     </div>
                     <div className="min-w-0">
                       <label htmlFor="city">City</label>
-                      <input id="city" value={spec.baby.city} onFocus={() => clearTextFieldOnFirstFocus("city")} onChange={(e) => patchBaby("city", e.target.value)} />
+                      <input
+                        id="city"
+                        style={{ fontFamily: formFontFamily }}
+                        value={spec.baby.city}
+                        onFocus={() => clearTextFieldOnFirstFocus("city")}
+                        onChange={(e) => patchBaby("city", e.target.value)}
+                      />
                     </div>
                     <div className="min-w-0 sm:col-span-2">
                       <label htmlFor="country">Country</label>
                       <input
                         id="country"
+                        style={{ fontFamily: formFontFamily }}
                         value={spec.baby.country}
                         onFocus={() => clearTextFieldOnFirstFocus("country")}
                         onChange={(e) => patchBaby("country", e.target.value)}
@@ -496,7 +487,14 @@ export function PosterBuilder() {
                   "style",
                   <div className="grid min-w-0 gap-4 md:grid-cols-2">
                     <div className="min-w-0">
-                      <label htmlFor="theme">Theme</label>
+                      <div className="mt-0.5 flex items-center justify-between">
+                        <label htmlFor="theme">Theme</label>
+                        <span className="flex items-center gap-1.5" aria-hidden>
+                          <span className="h-2 w-2 rounded-full border border-stone-300/70" style={{ backgroundColor: activePalette.day }} />
+                          <span className="h-2 w-2 rounded-full border border-stone-300/70" style={{ backgroundColor: activePalette.band }} />
+                          <span className="h-2 w-2 rounded-full border border-stone-300/70" style={{ backgroundColor: activePalette.time }} />
+                        </span>
+                      </div>
                       <select id="theme" value={spec.theme} onChange={(e) => setSpec((prev) => ({ ...prev, theme: e.target.value as PosterTheme }))}>
                         <option value="blush_meadow">Blush Meadow</option>
                         <option value="warm_peach">Warm Peach</option>
