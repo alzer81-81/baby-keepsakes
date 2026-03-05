@@ -20,10 +20,10 @@ type SectionKey = "baby_date" | "birth" | "stats" | "style";
 export function PosterBuilder() {
   const [spec, setSpec] = useState<PosterDesignSpec>(defaultDesignSpec);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
   const [previewMaxHeightPx, setPreviewMaxHeightPx] = useState<number | null>(null);
+  const [clearedFields, setClearedFields] = useState<Set<keyof PosterDesignSpec["baby"]>>(new Set());
   const formCardRef = useRef<HTMLDivElement | null>(null);
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
     baby_date: true,
@@ -93,12 +93,17 @@ export function PosterBuilder() {
 
   async function onDownloadPdf() {
     setError(null);
-    setSuccess(null);
 
     if (!spec.baby.firstName.trim() || !spec.baby.lastName.trim()) {
       setError("First and last name are required.");
       return;
     }
+
+    const ua = navigator.userAgent || "";
+    const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const isAndroid = /Android/i.test(ua);
+    const isMobile = isIOS || isAndroid;
+    const helperWindow = isMobile ? window.open("", "_blank") : null;
 
     setLoading(true);
     try {
@@ -116,14 +121,57 @@ export function PosterBuilder() {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const fileName = `${spec.baby.firstName || "birth"}-${spec.baby.lastName || "poster"}.pdf`;
-      const ua = navigator.userAgent || "";
-      const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-      const isAndroid = /Android/i.test(ua);
-      const isMobile = isIOS || isAndroid;
 
       if (isMobile) {
-        const opened = window.open(url, "_blank", "noopener,noreferrer");
-        if (!opened) {
+        if (helperWindow) {
+          const safeFileName = fileName.replace(/"/g, "");
+          const html = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Your PDF Is Ready</title>
+    <style>
+      body{margin:0;font-family:Nunito,Arial,sans-serif;background:#f3f1ee;color:#2d2a28}
+      .wrap{max-width:760px;margin:0 auto;padding:20px}
+      .card{background:#fff;border:1px solid #d6d2cd;border-radius:16px;padding:16px}
+      .actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px}
+      .btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
+      .btn-save{background:#171513;color:#fff}
+      .btn-share{background:#e39ab7;color:#2d1e25}
+      iframe{width:100%;height:70vh;border:1px solid #ddd;border-radius:12px;background:#fff}
+      p{margin:0}
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="card">
+        <p><strong>Your PDF is ready.</strong> Open it, then use your phone's Share sheet to Save to Files or send it.</p>
+        <div class="actions">
+          <a class="btn btn-save" href="${url}" target="_blank" rel="noopener" download="${safeFileName}">Save To Folder</a>
+          <button class="btn btn-share" id="shareBtn" type="button">Share</button>
+        </div>
+        <iframe src="${url}" title="PDF preview"></iframe>
+      </section>
+    </main>
+    <script>
+      const shareBtn = document.getElementById('shareBtn');
+      shareBtn?.addEventListener('click', async () => {
+        try {
+          if (navigator.share) {
+            await navigator.share({ title: 'Birth Poster PDF', url: '${url}' });
+          } else {
+            alert('Share is not available on this browser.');
+          }
+        } catch {}
+      });
+    </script>
+  </body>
+</html>`;
+          helperWindow.document.open();
+          helperWindow.document.write(html);
+          helperWindow.document.close();
+        } else {
           const anchor = document.createElement("a");
           anchor.href = url;
           anchor.target = "_blank";
@@ -132,7 +180,6 @@ export function PosterBuilder() {
           anchor.click();
           anchor.remove();
         }
-        setSuccess("PDF opened in your browser preview. Use Share or Save to Files to keep a copy on your phone.");
       } else {
         const anchor = document.createElement("a");
         anchor.href = url;
@@ -140,15 +187,28 @@ export function PosterBuilder() {
         document.body.appendChild(anchor);
         anchor.click();
         anchor.remove();
-        setSuccess("PDF downloaded to your device.");
       }
       window.setTimeout(() => URL.revokeObjectURL(url), 15000);
     } catch (downloadError) {
+      if (helperWindow && !helperWindow.closed) helperWindow.close();
       const message = downloadError instanceof Error ? downloadError.message : "Download failed";
       setError(message);
     } finally {
       setLoading(false);
     }
+  }
+
+  function clearTextFieldOnFirstFocus(key: keyof PosterDesignSpec["baby"]) {
+    if (clearedFields.has(key)) return;
+    const current = String(spec.baby[key] ?? "");
+    if (!current.trim()) return;
+
+    patchBaby(key as never, "" as never);
+    setClearedFields((prev) => {
+      const next = new Set(prev);
+      next.add(key);
+      return next;
+    });
   }
 
   function renderSection(title: string, description: string, key: SectionKey, children: ReactNode) {
@@ -199,7 +259,7 @@ export function PosterBuilder() {
   }, []);
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#efedeb] text-stone-900">
+    <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#efedeb] text-stone-900">
       <header className="flex h-20 items-center justify-between border-b border-stone-300/70 bg-[#f4f2f0] px-3 sm:px-8">
         <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold tracking-wide text-stone-700 hover:text-stone-900">
           <span aria-hidden>←</span>
@@ -210,7 +270,7 @@ export function PosterBuilder() {
       </header>
 
       <div className="mx-auto w-full max-w-[1280px] px-3 py-4 sm:px-5 lg:px-6">
-        <div className="sticky top-[30px] z-40 mb-4 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 shadow-sm backdrop-blur lg:hidden">
+        <div className="fixed left-3 right-3 top-[30px] z-50 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 shadow-sm backdrop-blur lg:hidden">
           <button
             type="button"
             onClick={() => setMobileView("edit")}
@@ -232,11 +292,22 @@ export function PosterBuilder() {
             Preview
           </button>
         </div>
+        <div className="h-[66px] lg:hidden" />
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,500px)] xl:gap-6">
-          <section className={`${mobileView === "preview" ? "block" : "hidden"} lg:block`}>
+          <section className={`${mobileView === "preview" ? "block pt-0" : "hidden"} lg:block`}>
             <div className="lg:sticky lg:top-[96px] lg:max-h-[calc(100vh-96px)]">
               <PosterPreview spec={spec} maxHeightPx={previewMaxHeightPx ?? undefined} />
+              <div className="mt-3 lg:hidden">
+                <button
+                  type="button"
+                  onClick={onDownloadPdf}
+                  disabled={loading}
+                  className="inline-flex w-full items-center justify-center rounded-xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading ? "Generating PDF..." : "Download High-Res PDF"}
+                </button>
+              </div>
             </div>
           </section>
 
@@ -256,17 +327,36 @@ export function PosterBuilder() {
                       <label htmlFor="firstName">
                         First Name <span aria-hidden>*</span>
                       </label>
-                      <input id="firstName" value={spec.baby.firstName} onChange={(e) => patchBaby("firstName", e.target.value)} required aria-required="true" />
+                      <input
+                        id="firstName"
+                        value={spec.baby.firstName}
+                        onFocus={() => clearTextFieldOnFirstFocus("firstName")}
+                        onChange={(e) => patchBaby("firstName", e.target.value)}
+                        required
+                        aria-required="true"
+                      />
                     </div>
                     <div className="min-w-0">
                       <label htmlFor="middleName">Middle Name</label>
-                      <input id="middleName" value={spec.baby.middleName} onChange={(e) => patchBaby("middleName", e.target.value)} />
+                      <input
+                        id="middleName"
+                        value={spec.baby.middleName}
+                        onFocus={() => clearTextFieldOnFirstFocus("middleName")}
+                        onChange={(e) => patchBaby("middleName", e.target.value)}
+                      />
                     </div>
                     <div className="min-w-0 sm:col-span-2">
                       <label htmlFor="lastName">
                         Surname <span aria-hidden>*</span>
                       </label>
-                      <input id="lastName" value={spec.baby.lastName} onChange={(e) => patchBaby("lastName", e.target.value)} required aria-required="true" />
+                      <input
+                        id="lastName"
+                        value={spec.baby.lastName}
+                        onFocus={() => clearTextFieldOnFirstFocus("lastName")}
+                        onChange={(e) => patchBaby("lastName", e.target.value)}
+                        required
+                        aria-required="true"
+                      />
                     </div>
                     <div className="min-w-0">
                       <label htmlFor="dateOfBirth">Date Of Birth</label>
@@ -331,15 +421,25 @@ export function PosterBuilder() {
                   <div className="grid min-w-0 gap-4 md:grid-cols-2">
                     <div className="min-w-0">
                       <label htmlFor="hospital">Hospital</label>
-                      <input id="hospital" value={spec.baby.hospital} onChange={(e) => patchBaby("hospital", e.target.value)} />
+                      <input
+                        id="hospital"
+                        value={spec.baby.hospital}
+                        onFocus={() => clearTextFieldOnFirstFocus("hospital")}
+                        onChange={(e) => patchBaby("hospital", e.target.value)}
+                      />
                     </div>
                     <div className="min-w-0">
                       <label htmlFor="city">City</label>
-                      <input id="city" value={spec.baby.city} onChange={(e) => patchBaby("city", e.target.value)} />
+                      <input id="city" value={spec.baby.city} onFocus={() => clearTextFieldOnFirstFocus("city")} onChange={(e) => patchBaby("city", e.target.value)} />
                     </div>
                     <div className="min-w-0 sm:col-span-2">
                       <label htmlFor="country">Country</label>
-                      <input id="country" value={spec.baby.country} onChange={(e) => patchBaby("country", e.target.value)} />
+                      <input
+                        id="country"
+                        value={spec.baby.country}
+                        onFocus={() => clearTextFieldOnFirstFocus("country")}
+                        onChange={(e) => patchBaby("country", e.target.value)}
+                      />
                     </div>
                   </div>
                 )}
@@ -440,17 +540,6 @@ export function PosterBuilder() {
                 {error ? (
                   <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p>
                 ) : null}
-                {success ? (
-                  <div
-                    className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-900 shadow-sm"
-                    role="status"
-                    aria-live="polite"
-                  >
-                    <p className="text-sm font-extrabold uppercase tracking-[0.08em] text-emerald-700">Download Started</p>
-                    <p className="mt-1 text-sm font-semibold">{success}</p>
-                  </div>
-                ) : null}
-
                 <div className="mt-2 pb-2 pt-4 lg:sticky lg:bottom-0 lg:bg-gradient-to-t lg:from-white lg:via-white lg:to-transparent">
                   <button
                     type="button"
