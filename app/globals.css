@@ -27,7 +27,7 @@ label {
 
 input,
 select {
-  @apply mt-1 w-full rounded-xl border border-stone-300/90 bg-white/95 px-3 py-2.5 text-sm text-stone-900 shadow-sm shadow-stone-200/60 transition focus:border-stone-500 focus:outline-none focus:ring-2 focus:ring-stone-300/60;
+  @apply mt-1 min-w-0 w-full rounded-xl border border-stone-300/90 bg-white/95 px-3 py-2.5 text-sm text-stone-900 shadow-sm shadow-stone-200/60 transition focus:border-stone-500 focus:outline-none focus:ring-2 focus:ring-stone-300/60;
 }
 
 .form-card {

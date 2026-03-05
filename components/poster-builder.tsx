@@ -190,7 +190,7 @@ export function PosterBuilder() {
       </header>
 
       <div className="mx-auto w-full max-w-[1280px] px-3 py-4 sm:px-5 lg:px-6">
-        <div className="mb-4 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white p-1 lg:hidden">
+        <div className="sticky top-2 z-30 mb-4 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 backdrop-blur lg:hidden">
           <button
             type="button"
             onClick={() => setMobileView("edit")}
@@ -231,7 +231,7 @@ export function PosterBuilder() {
                   "Baby Date Details",
                   "Enter your baby's name, birthday, and birth time.",
                   "baby_date",
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label htmlFor="firstName">
                         First Name <span aria-hidden>*</span>
@@ -250,41 +250,56 @@ export function PosterBuilder() {
                     </div>
                     <div>
                       <label htmlFor="dateOfBirth">Date Of Birth</label>
-                      <input
-                        id="dateOfBirth"
-                        type="date"
-                        className="text-left [text-align-last:left]"
-                        value={dateValue}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (!value) return;
-                          const [yearStr, monthStr, dayStr] = value.split("-");
-                          const year = Number(yearStr);
-                          const month = Number(monthStr);
-                          const day = Number(dayStr);
-                          const monthName = MONTH_OPTIONS[month - 1] ?? MONTH_OPTIONS[0];
-                          setSpec((prev) => ({
-                            ...prev,
-                            baby: {
-                              ...prev.baby,
-                              month: monthName,
-                              day,
-                              year
-                            }
-                          }));
-                        }}
-                      />
+                      <div className="relative">
+                        <input
+                          id="dateOfBirth"
+                          type="date"
+                          className="pr-10 text-left [text-align-last:left]"
+                          value={dateValue}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (!value) return;
+                            const [yearStr, monthStr, dayStr] = value.split("-");
+                            const year = Number(yearStr);
+                            const month = Number(monthStr);
+                            const day = Number(dayStr);
+                            const monthName = MONTH_OPTIONS[month - 1] ?? MONTH_OPTIONS[0];
+                            setSpec((prev) => ({
+                              ...prev,
+                              baby: {
+                                ...prev.baby,
+                                month: monthName,
+                                day,
+                                year
+                              }
+                            }));
+                          }}
+                        />
+                        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-stone-500" aria-hidden>
+                          <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current">
+                            <path d="M5.5 7.5 10 12l4.5-4.5" />
+                          </svg>
+                        </span>
+                      </div>
                     </div>
                     <div>
                       <label htmlFor="time">Time Of Birth</label>
-                      <input
-                        id="time"
-                        type="time"
-                        inputMode="numeric"
-                        step={60}
-                        value={timeInputValue}
-                        onChange={(e) => patchBaby("time", formatTimeForPoster(e.target.value))}
-                      />
+                      <div className="relative">
+                        <input
+                          id="time"
+                          type="time"
+                          inputMode="numeric"
+                          step={60}
+                          className="pr-10 text-left [text-align-last:left]"
+                          value={timeInputValue}
+                          onChange={(e) => patchBaby("time", formatTimeForPoster(e.target.value))}
+                        />
+                        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-stone-500" aria-hidden>
+                          <svg viewBox="0 0 20 20" className="h-4 w-4 fill-current">
+                            <path d="M5.5 7.5 10 12l4.5-4.5" />
+                          </svg>
+                        </span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -293,7 +308,7 @@ export function PosterBuilder() {
                   "Birth Details",
                   "Add location information for where your baby was born.",
                   "birth",
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label htmlFor="hospital">Hospital</label>
                       <input id="hospital" value={spec.baby.hospital} onChange={(e) => patchBaby("hospital", e.target.value)} />
@@ -313,7 +328,7 @@ export function PosterBuilder() {
                   "Birth Stats",
                   "Record weight details as pounds and ounces.",
                   "stats",
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label htmlFor="weightPounds">Weight (lb)</label>
                       <input
@@ -343,7 +358,7 @@ export function PosterBuilder() {
                   "Style",
                   "Choose colors, type, and artwork for the poster design.",
                   "style",
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label htmlFor="theme">Theme</label>
                       <select id="theme" value={spec.theme} onChange={(e) => setSpec((prev) => ({ ...prev, theme: e.target.value as PosterTheme }))}>
