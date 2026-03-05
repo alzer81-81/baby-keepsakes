@@ -285,7 +285,7 @@ export function PosterBuilder() {
       <div className="mx-auto w-full max-w-[1280px] px-3 py-4 sm:px-5 lg:px-6">
         <div
           className={`z-40 mb-4 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 shadow-sm backdrop-blur lg:hidden ${
-            isTogglePinned ? "fixed left-3 right-3 top-[84px]" : "relative"
+            isTogglePinned ? "fixed left-3 right-3 top-[30px]" : "relative"
           }`}
         >
           <button
