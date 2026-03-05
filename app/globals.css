@@ -44,6 +44,14 @@ input[type="time"]::-webkit-date-and-time-value {
   text-align: left;
 }
 
+@media (max-width: 1023px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 .form-card {
   @apply rounded-3xl border border-stone-300/80 bg-white/90 shadow-xl shadow-stone-300/30 backdrop-blur;
 }
