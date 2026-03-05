@@ -132,26 +132,30 @@ export function PosterBuilder() {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Your PDF Is Ready</title>
     <style>
+      *{box-sizing:border-box}
       body{margin:0;font-family:Nunito,Arial,sans-serif;background:#f3f1ee;color:#2d2a28}
-      .wrap{max-width:760px;margin:0 auto;padding:20px}
-      .card{background:#fff;border:1px solid #d6d2cd;border-radius:16px;padding:16px}
-      .actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 16px}
-      .btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
+      .wrap{max-width:760px;margin:0 auto;padding:14px}
+      .card{background:#fff;border:1px solid #d6d2cd;border-radius:16px;padding:14px}
+      .title{margin:0 0 6px;font-size:18px;font-weight:800}
+      .subtitle{margin:0;color:#655f5a;font-size:14px;line-height:1.35}
+      .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 12px}
+      .btn{appearance:none;border:0;border-radius:10px;padding:11px 12px;font-weight:800;cursor:pointer;font-size:14px;text-align:center;text-decoration:none;line-height:1.1}
       .btn-save{background:#171513;color:#fff}
       .btn-share{background:#e39ab7;color:#2d1e25}
-      iframe{width:100%;height:70vh;border:1px solid #ddd;border-radius:12px;background:#fff}
-      p{margin:0}
+      .preview{width:100%;height:min(56vh,440px);border:1px solid #ddd;border-radius:12px;background:#fff}
+      @media (max-width:460px){.actions{grid-template-columns:1fr}.preview{height:min(52vh,380px)}}
     </style>
   </head>
   <body>
     <main class="wrap">
       <section class="card">
-        <p><strong>Your PDF is ready.</strong> Open it, then use your phone's Share sheet to Save to Files or send it.</p>
+        <h1 class="title">Your PDF Is Ready</h1>
+        <p class="subtitle">Use one of the actions below, then save to files or share from your phone.</p>
         <div class="actions">
           <a class="btn btn-save" href="${url}" target="_blank" rel="noopener" download="${safeFileName}">Save To Folder</a>
           <button class="btn btn-share" id="shareBtn" type="button">Share</button>
         </div>
-        <iframe src="${url}" title="PDF preview"></iframe>
+        <iframe class="preview" src="${url}" title="PDF preview"></iframe>
       </section>
     </main>
     <script>
@@ -270,7 +274,7 @@ export function PosterBuilder() {
       </header>
 
       <div className="mx-auto w-full max-w-[1280px] px-3 py-4 sm:px-5 lg:px-6">
-        <div className="fixed left-3 right-3 top-[30px] z-50 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 shadow-sm backdrop-blur lg:hidden">
+        <div className="sticky top-[30px] z-40 mb-4 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 shadow-sm backdrop-blur lg:hidden">
           <button
             type="button"
             onClick={() => setMobileView("edit")}
@@ -292,8 +296,6 @@ export function PosterBuilder() {
             Preview
           </button>
         </div>
-        <div className="h-[66px] lg:hidden" />
-
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,500px)] xl:gap-6">
           <section className={`${mobileView === "preview" ? "block pt-0" : "hidden"} lg:block`}>
             <div className="lg:sticky lg:top-[96px] lg:max-h-[calc(100vh-96px)]">
