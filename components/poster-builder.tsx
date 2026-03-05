@@ -22,6 +22,7 @@ export function PosterBuilder() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
+  const [isMobileClient, setIsMobileClient] = useState(false);
   const [previewMaxHeightPx, setPreviewMaxHeightPx] = useState<number | null>(null);
   const [clearedFields, setClearedFields] = useState<Set<keyof PosterDesignSpec["baby"]>>(new Set());
   const formCardRef = useRef<HTMLDivElement | null>(null);
@@ -91,6 +92,27 @@ export function PosterBuilder() {
     return `${String(hour12).padStart(2, "0")}:${String(mm).padStart(2, "0")} ${period}`;
   }
 
+  function isMobileViewport(): boolean {
+    return typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches;
+  }
+
+  async function fetchPdfBlob(): Promise<{ blob: Blob; fileName: string }> {
+    const res = await fetch("/api/download-pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(spec)
+    });
+
+    if (!res.ok) {
+      const data = (await res.json()) as { error?: string };
+      throw new Error(data.error ?? "Unable to generate PDF.");
+    }
+
+    const blob = await res.blob();
+    const fileName = `${spec.baby.firstName || "birth"}-${spec.baby.lastName || "poster"}.pdf`;
+    return { blob, fileName };
+  }
+
   async function onDownloadPdf() {
     setError(null);
 
@@ -99,107 +121,69 @@ export function PosterBuilder() {
       return;
     }
 
-    const ua = navigator.userAgent || "";
-    const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    const isAndroid = /Android/i.test(ua);
-    const isMobile = isIOS || isAndroid;
-    const helperWindow = isMobile ? window.open("", "_blank") : null;
-
     setLoading(true);
     try {
-      const res = await fetch("/api/download-pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(spec)
-      });
-
-      if (!res.ok) {
-        const data = (await res.json()) as { error?: string };
-        throw new Error(data.error ?? "Unable to generate PDF.");
-      }
-
-      const blob = await res.blob();
+      const { blob, fileName } = await fetchPdfBlob();
       const url = URL.createObjectURL(blob);
-      const fileName = `${spec.baby.firstName || "birth"}-${spec.baby.lastName || "poster"}.pdf`;
-
-      if (isMobile) {
-        if (helperWindow) {
-          const safeFileName = fileName.replace(/"/g, "");
-          const html = `<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Your PDF Is Ready</title>
-    <style>
-      *{box-sizing:border-box}
-      body{margin:0;font-family:Nunito,Arial,sans-serif;background:#f3f1ee;color:#2d2a28}
-      .wrap{max-width:760px;margin:0 auto;padding:14px}
-      .card{background:#fff;border:1px solid #d6d2cd;border-radius:16px;padding:14px}
-      .title{margin:0 0 6px;font-size:18px;font-weight:800}
-      .subtitle{margin:0;color:#655f5a;font-size:14px;line-height:1.35}
-      .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 12px}
-      .btn{appearance:none;border:0;border-radius:10px;padding:11px 12px;font-weight:800;cursor:pointer;font-size:14px;text-align:center;text-decoration:none;line-height:1.1}
-      .btn-save{background:#171513;color:#fff}
-      .btn-share{background:#e39ab7;color:#2d1e25}
-      .preview{width:100%;height:min(56vh,440px);border:1px solid #ddd;border-radius:12px;background:#fff}
-      @media (max-width:460px){.actions{grid-template-columns:1fr}.preview{height:min(52vh,380px)}}
-    </style>
-  </head>
-  <body>
-    <main class="wrap">
-      <section class="card">
-        <h1 class="title">Your PDF Is Ready</h1>
-        <p class="subtitle">Use one of the actions below, then save to files or share from your phone.</p>
-        <div class="actions">
-          <a class="btn btn-save" href="${url}" target="_blank" rel="noopener" download="${safeFileName}">Save To Folder</a>
-          <button class="btn btn-share" id="shareBtn" type="button">Share</button>
-        </div>
-        <iframe class="preview" src="${url}" title="PDF preview"></iframe>
-      </section>
-    </main>
-    <script>
-      const shareBtn = document.getElementById('shareBtn');
-      shareBtn?.addEventListener('click', async () => {
-        try {
-          if (navigator.share) {
-            await navigator.share({ title: 'Birth Poster PDF', url: '${url}' });
-          } else {
-            alert('Share is not available on this browser.');
-          }
-        } catch {}
-      });
-    </script>
-  </body>
-</html>`;
-          helperWindow.document.open();
-          helperWindow.document.write(html);
-          helperWindow.document.close();
-        } else {
-          const anchor = document.createElement("a");
-          anchor.href = url;
-          anchor.target = "_blank";
-          anchor.rel = "noopener noreferrer";
-          document.body.appendChild(anchor);
-          anchor.click();
-          anchor.remove();
-        }
-      } else {
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = fileName;
-        document.body.appendChild(anchor);
-        anchor.click();
-        anchor.remove();
-      }
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 15000);
     } catch (downloadError) {
-      if (helperWindow && !helperWindow.closed) helperWindow.close();
       const message = downloadError instanceof Error ? downloadError.message : "Download failed";
       setError(message);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function onEmailPdfMobile() {
+    setError(null);
+
+    if (!spec.baby.firstName.trim() || !spec.baby.lastName.trim()) {
+      setError("First and last name are required.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { blob, fileName } = await fetchPdfBlob();
+      const file = new File([blob], fileName, { type: "application/pdf" });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: "Birth Poster PDF",
+          text: "Sharing your birth poster PDF",
+          files: [file]
+        });
+      } else if (navigator.share) {
+        const url = URL.createObjectURL(blob);
+        await navigator.share({
+          title: "Birth Poster PDF",
+          text: "Open this PDF and email it to yourself",
+          url
+        });
+        window.setTimeout(() => URL.revokeObjectURL(url), 15000);
+      } else {
+        throw new Error("Email/Share is not supported on this device.");
+      }
+    } catch (shareError) {
+      const message = shareError instanceof Error ? shareError.message : "Unable to open email/share.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function onPrimaryPdfAction() {
+    if (isMobileViewport()) {
+      void onEmailPdfMobile();
+      return;
+    }
+    void onDownloadPdf();
   }
 
   function clearTextFieldOnFirstFocus(key: keyof PosterDesignSpec["baby"]) {
@@ -262,6 +246,13 @@ export function PosterBuilder() {
     };
   }, []);
 
+  useEffect(() => {
+    const setMobile = () => setIsMobileClient(window.matchMedia("(max-width: 1023px)").matches);
+    setMobile();
+    window.addEventListener("resize", setMobile);
+    return () => window.removeEventListener("resize", setMobile);
+  }, []);
+
   return (
     <main className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#efedeb] text-stone-900">
       <header className="flex h-20 items-center justify-between border-b border-stone-300/70 bg-[#f4f2f0] px-3 sm:px-8">
@@ -274,7 +265,7 @@ export function PosterBuilder() {
       </header>
 
       <div className="mx-auto w-full max-w-[1280px] px-3 py-4 sm:px-5 lg:px-6">
-        <div className="sticky top-[30px] z-40 mb-4 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 shadow-sm backdrop-blur lg:hidden">
+        <div className="sticky top-[84px] z-40 mb-4 grid grid-cols-2 gap-2 rounded-xl border border-stone-300 bg-white/95 p-1 shadow-sm backdrop-blur lg:hidden">
           <button
             type="button"
             onClick={() => setMobileView("edit")}
@@ -303,11 +294,11 @@ export function PosterBuilder() {
               <div className="mt-3 lg:hidden">
                 <button
                   type="button"
-                  onClick={onDownloadPdf}
+                  onClick={onPrimaryPdfAction}
                   disabled={loading}
                   className="inline-flex w-full items-center justify-center rounded-xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {loading ? "Generating PDF..." : "Download High-Res PDF"}
+                  {loading ? "Preparing PDF..." : "Email PDF"}
                 </button>
               </div>
             </div>
@@ -545,11 +536,11 @@ export function PosterBuilder() {
                 <div className="mt-2 pb-2 pt-4 lg:sticky lg:bottom-0 lg:bg-gradient-to-t lg:from-white lg:via-white lg:to-transparent">
                   <button
                     type="button"
-                    onClick={onDownloadPdf}
+                    onClick={onPrimaryPdfAction}
                     disabled={loading}
                     className="inline-flex w-full items-center justify-center rounded-xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {loading ? "Generating PDF..." : "Download High-Res PDF"}
+                    {loading ? "Preparing PDF..." : isMobileClient ? "Email PDF" : "Download High-Res PDF"}
                   </button>
                 </div>
               </div>
