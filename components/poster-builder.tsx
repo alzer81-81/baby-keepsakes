@@ -115,14 +115,34 @@ export function PosterBuilder() {
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `${spec.baby.firstName || "birth"}-${spec.baby.lastName || "poster"}.pdf`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
-      setSuccess("PDF downloaded.");
+      const fileName = `${spec.baby.firstName || "birth"}-${spec.baby.lastName || "poster"}.pdf`;
+      const ua = navigator.userAgent || "";
+      const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isAndroid = /Android/i.test(ua);
+      const isMobile = isIOS || isAndroid;
+
+      if (isMobile) {
+        const opened = window.open(url, "_blank", "noopener,noreferrer");
+        if (!opened) {
+          const anchor = document.createElement("a");
+          anchor.href = url;
+          anchor.target = "_blank";
+          anchor.rel = "noopener noreferrer";
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+        }
+        setSuccess("PDF opened in your browser preview. Use Share or Save to Files to keep a copy on your phone.");
+      } else {
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = fileName;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        setSuccess("PDF downloaded to your device.");
+      }
+      window.setTimeout(() => URL.revokeObjectURL(url), 15000);
     } catch (downloadError) {
       const message = downloadError instanceof Error ? downloadError.message : "Download failed";
       setError(message);
@@ -427,7 +447,7 @@ export function PosterBuilder() {
                     aria-live="polite"
                   >
                     <p className="text-sm font-extrabold uppercase tracking-[0.08em] text-emerald-700">Download Started</p>
-                    <p className="mt-1 text-sm font-semibold">Your high-resolution PDF is on its way to your device.</p>
+                    <p className="mt-1 text-sm font-semibold">{success}</p>
                   </div>
                 ) : null}
 
