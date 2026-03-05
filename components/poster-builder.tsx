@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 
 import { PosterPreview } from "@/components/poster-preview";
 import {
@@ -23,6 +23,7 @@ export function PosterBuilder() {
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
+  const [isMobileClient, setIsMobileClient] = useState(false);
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
     baby_date: true,
     birth: false,
@@ -89,6 +90,30 @@ export function PosterBuilder() {
     return `${String(hour12).padStart(2, "0")}:${String(mm).padStart(2, "0")} ${period}`;
   }
 
+  useEffect(() => {
+    const setMobile = () => setIsMobileClient(window.matchMedia("(max-width: 1023px)").matches);
+    setMobile();
+    window.addEventListener("resize", setMobile);
+    return () => window.removeEventListener("resize", setMobile);
+  }, []);
+
+  async function fetchPdfBlob(): Promise<{ blob: Blob; fileName: string }> {
+    const res = await fetch("/api/download-pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(spec)
+    });
+
+    if (!res.ok) {
+      const data = (await res.json()) as { error?: string };
+      throw new Error(data.error ?? "Unable to generate PDF.");
+    }
+
+    const blob = await res.blob();
+    const fileName = `${spec.baby.firstName || "birth"}-${spec.baby.lastName || "poster"}.pdf`;
+    return { blob, fileName };
+  }
+
   async function onDownloadPdf() {
     setError(null);
     setSuccess(null);
@@ -100,22 +125,11 @@ export function PosterBuilder() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/download-pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(spec)
-      });
-
-      if (!res.ok) {
-        const data = (await res.json()) as { error?: string };
-        throw new Error(data.error ?? "Unable to generate PDF.");
-      }
-
-      const blob = await res.blob();
+      const { blob, fileName } = await fetchPdfBlob();
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `${spec.baby.firstName || "birth"}-${spec.baby.lastName || "poster"}.pdf`;
+      anchor.download = fileName;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
@@ -127,6 +141,54 @@ export function PosterBuilder() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function onEmailPdfMobile() {
+    setError(null);
+    setSuccess(null);
+
+    if (!spec.baby.firstName.trim() || !spec.baby.lastName.trim()) {
+      setError("First and last name are required.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { blob, fileName } = await fetchPdfBlob();
+      const file = new File([blob], fileName, { type: "application/pdf" });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: "Birth Poster PDF",
+          text: "Email this birth poster PDF to yourself.",
+          files: [file]
+        });
+      } else if (navigator.share) {
+        const url = URL.createObjectURL(blob);
+        await navigator.share({
+          title: "Birth Poster PDF",
+          text: "Email this birth poster PDF to yourself.",
+          url
+        });
+        window.setTimeout(() => URL.revokeObjectURL(url), 15000);
+      } else {
+        throw new Error("Email/share is not supported on this device.");
+      }
+      setSuccess("Share sheet opened.");
+    } catch (shareError) {
+      const message = shareError instanceof Error ? shareError.message : "Unable to open email/share.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function onPrimaryPdfAction() {
+    if (isMobileClient) {
+      void onEmailPdfMobile();
+      return;
+    }
+    void onDownloadPdf();
   }
 
   function renderSection(title: string, description: string, key: SectionKey, children: ReactNode) {
@@ -397,11 +459,11 @@ export function PosterBuilder() {
                 <div className="mt-2 pb-2 pt-4 lg:sticky lg:bottom-0 lg:bg-gradient-to-t lg:from-white lg:via-white lg:to-transparent">
                   <button
                     type="button"
-                    onClick={onDownloadPdf}
+                    onClick={onPrimaryPdfAction}
                     disabled={loading}
                     className="inline-flex w-full items-center justify-center rounded-xl bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-500/60 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {loading ? "Generating PDF..." : "Download High-Res PDF"}
+                    {loading ? "Preparing PDF..." : isMobileClient ? "Email PDF" : "Download High-Res PDF"}
                   </button>
                 </div>
               </div>
