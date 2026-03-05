@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import { PosterDesignSpec } from "@/lib/design-spec";
 import { renderPosterSvg } from "@/lib/poster-renderer";
 
@@ -8,6 +10,21 @@ type Props = {
 };
 
 export function PosterPreview({ spec, zoom = 1, maxHeightPx }: Props) {
+  const [fontRenderTick, setFontRenderTick] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    const fontsApi = typeof document !== "undefined" ? (document as Document & { fonts?: FontFaceSet }).fonts : undefined;
+    if (!fontsApi) return;
+
+    void fontsApi.ready.then(() => {
+      if (!cancelled) setFontRenderTick((prev) => prev + 1);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [spec.font]);
+
   const svg = renderPosterSvg(spec, "preview");
   const maxHeightStyle = maxHeightPx ? { maxHeight: `${maxHeightPx}px` } : undefined;
 
@@ -19,6 +36,7 @@ export function PosterPreview({ spec, zoom = 1, maxHeightPx }: Props) {
       >
         <div className="flex h-full w-full items-center justify-center overflow-hidden">
           <div
+            key={`${spec.font}-${fontRenderTick}`}
             className="h-full w-full origin-center transition-transform duration-200 ease-out [&_svg]:block [&_svg]:h-full [&_svg]:w-full"
             style={{ transform: `scale(${zoom})` }}
             dangerouslySetInnerHTML={{ __html: svg }}
