@@ -277,23 +277,6 @@ export const previewFontFamilies: Record<PosterFont, string> = {
   fira_sans: "'Fira Sans', sans-serif"
 };
 
-export const previewFontPrimaryName: Record<PosterFont, string> = {
-  playfair: "Playfair Display",
-  montserrat: "Montserrat",
-  lora: "Lora",
-  nunito: "Nunito",
-  merriweather: "Merriweather",
-  raleway: "Raleway",
-  poppins: "Poppins",
-  cormorant: "Cormorant Garamond",
-  libre_baskerville: "Libre Baskerville",
-  quicksand: "Quicksand",
-  rubik: "Rubik",
-  dm_sans: "DM Sans",
-  archivo: "Archivo",
-  fira_sans: "Fira Sans"
-};
-
 export const printFontFamilies: Record<PosterFont, string> = {
   playfair: "'Playfair Display', serif",
   montserrat: "Montserrat, sans-serif",
