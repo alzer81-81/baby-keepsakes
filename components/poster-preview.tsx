@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { PosterDesignSpec } from "@/lib/design-spec";
 import { renderPosterSvg } from "@/lib/poster-renderer";
+import { previewFontPrimaryName } from "@/lib/poster-style";
 
 type Props = {
   spec: PosterDesignSpec;
@@ -11,14 +12,34 @@ type Props = {
 
 export function PosterPreview({ spec, zoom = 1, maxHeightPx }: Props) {
   const [fontRenderTick, setFontRenderTick] = useState(0);
+
   useEffect(() => {
     let cancelled = false;
-    const fontsApi = typeof document !== "undefined" ? (document as Document & { fonts?: FontFaceSet }).fonts : undefined;
-    if (!fontsApi) return;
+    const family = previewFontPrimaryName[spec.font];
+    if (typeof document === "undefined") return;
 
-    void fontsApi.ready.then(() => {
-      if (!cancelled) setFontRenderTick((prev) => prev + 1);
-    });
+    const linkId = `preview-font-${spec.font}`;
+    if (!document.getElementById(linkId)) {
+      const link = document.createElement("link");
+      link.id = linkId;
+      link.rel = "stylesheet";
+      const queryFamily = family.replace(/\s+/g, "+");
+      link.href = `https://fonts.googleapis.com/css2?family=${queryFamily}:wght@400;500;600;700;800&display=swap`;
+      document.head.appendChild(link);
+    }
+
+    const fontsApi = (document as Document & { fonts?: FontFaceSet }).fonts;
+    if (!fontsApi) {
+      setFontRenderTick((prev) => prev + 1);
+      return;
+    }
+
+    void fontsApi
+      .load(`700 1em "${family}"`)
+      .catch(() => undefined)
+      .then(() => {
+        if (!cancelled) setFontRenderTick((prev) => prev + 1);
+      });
 
     return () => {
       cancelled = true;
