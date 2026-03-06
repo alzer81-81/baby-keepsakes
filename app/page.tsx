@@ -23,7 +23,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#f3eaee] px-6 text-[#1d2436] [font-family:'Nunito','Avenir Next','Avenir','Segoe UI',sans-serif] md:px-10">
-      <section className="mx-auto w-full max-w-[1100px] pt-0 pb-[8px]">
+      <section className="mx-auto w-full max-w-[1100px] pt-[75px] pb-[8px] md:pt-0">
         <div className="mt-0 grid items-center gap-[24px] lg:grid-cols-[minmax(0,620px)_minmax(0,1fr)]">
           <div className="max-w-[640px]">
           <Image src="/logo.png" alt="Baby Keepsakes logo" width={190} height={62} className="mb-[14px] h-auto w-[170px]" priority />
