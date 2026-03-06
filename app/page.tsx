@@ -17,7 +17,7 @@ export default function HomePage() {
     {
       icon: "/home-3.png",
       title: "Download and Print",
-      text: "For now, download complete FREE, until I figure out how to charge people!"
+      text: "For now, download Completely FREE, until I figure out how to charge people!"
     }
   ];
 
