@@ -253,6 +253,12 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
   const countrySize = countryFit.size;
   const cityLetterSpacing = clamp(0.56 - cityRaw.length * 0.012, 0.1, 0.44);
   const countryLetterSpacing = clamp(0.44 - countryRaw.length * 0.01, 0.08, 0.36);
+  const hospitalNaturalWidth = estimateTextWidth(hospitalFit.text, hospitalSize, 0.12, 0.5);
+  const cityNaturalWidth = estimateTextWidth(cityFit.text, citySize, cityLetterSpacing, 0.6);
+  const countryNaturalWidth = estimateTextWidth(countryFit.text, countrySize, countryLetterSpacing, 0.6);
+  const needsHospitalCompress = hospitalNaturalWidth > hospitalMaxWidth;
+  const needsCityCompress = cityNaturalWidth > cityMaxWidth;
+  const needsCountryCompress = countryNaturalWidth > countryMaxWidth;
   const bottomTop = 226;
   const bottomBottom = 289;
   const line1 = hospitalSize;
@@ -299,9 +305,9 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
         } style="font-family:${fontFamily};font-size:${secondLineSize}px;font-weight:700;letter-spacing:${lastNameSpacing}px;fill:${palette.lastName};">${lastName}</text>`
   }
 
-  <text x="${locationCenterX}" y="${hospitalY}" text-anchor="middle" textLength="${hospitalMaxWidth}" lengthAdjust="spacingAndGlyphs" style="font-family:${fontFamily};font-size:${hospitalSize}px;line-height:0.95;font-style:italic;font-weight:500;fill:${palette.hospital};">${hospital}</text>
-  <text x="${locationCenterX}" y="${cityY}" text-anchor="middle" textLength="${cityMaxWidth}" lengthAdjust="spacingAndGlyphs" style="font-family:${fontFamily};font-size:${citySize}px;line-height:0.95;font-weight:800;letter-spacing:${cityLetterSpacing}px;fill:${palette.city};stroke:${palette.city};stroke-width:0.1;stroke-dasharray:0.55 0.65;">${city}</text>
-  <text x="${locationCenterX}" y="${countryY}" text-anchor="middle" textLength="${countryMaxWidth}" lengthAdjust="spacingAndGlyphs" style="font-family:${fontFamily};font-size:${countrySize}px;line-height:0.95;font-weight:700;letter-spacing:${countryLetterSpacing}px;fill:${palette.country};stroke:${palette.country};stroke-width:0.08;stroke-dasharray:0.55 0.6;">${country}</text>
+  <text x="${locationCenterX}" y="${hospitalY}" text-anchor="middle" ${needsHospitalCompress ? `textLength="${hospitalMaxWidth}" lengthAdjust="spacingAndGlyphs"` : ""} style="font-family:${fontFamily};font-size:${hospitalSize}px;line-height:0.95;font-style:italic;font-weight:500;fill:${palette.hospital};">${hospital}</text>
+  <text x="${locationCenterX}" y="${cityY}" text-anchor="middle" ${needsCityCompress ? `textLength="${cityMaxWidth}" lengthAdjust="spacingAndGlyphs"` : ""} style="font-family:${fontFamily};font-size:${citySize}px;line-height:0.95;font-weight:800;letter-spacing:${cityLetterSpacing}px;fill:${palette.city};stroke:${palette.city};stroke-width:0.1;stroke-dasharray:0.55 0.65;">${city}</text>
+  <text x="${locationCenterX}" y="${countryY}" text-anchor="middle" ${needsCountryCompress ? `textLength="${countryMaxWidth}" lengthAdjust="spacingAndGlyphs"` : ""} style="font-family:${fontFamily};font-size:${countrySize}px;line-height:0.95;font-weight:700;letter-spacing:${countryLetterSpacing}px;fill:${palette.country};stroke:${palette.country};stroke-width:0.08;stroke-dasharray:0.55 0.6;">${country}</text>
 
   <g transform="translate(166 249)">
     <circle cx="0" cy="0" r="34" fill="${palette.badgeFill}" />
