@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import heroImage from "../LP_heroimg.png";
 
 export default function HomePage() {
   const cards = [
@@ -22,13 +23,16 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#f3eaee] px-6 text-[#1d2436] [font-family:'Nunito','Avenir Next','Avenir','Segoe UI',sans-serif] md:px-10">
-      <section className="mx-auto w-full max-w-[1140px] pt-[120px] pb-[44px]">
-        <div className="max-w-[760px]">
+      <section className="mx-auto w-full max-w-[1240px] pt-[64px] pb-[12px]">
+        <Image src="/logo.png" alt="Baby Keepsakes logo" width={190} height={62} className="h-auto w-[190px]" priority />
+
+        <div className="mt-[28px] grid items-center gap-8 lg:grid-cols-[minmax(0,760px)_minmax(0,1fr)]">
+          <div className="max-w-[760px]">
           {/*
             Reference measurements:
             - Hero title: 68px
             - Subtitle: 24px
-            - CTA: 390x90px
+            - CTA: 250px wide / 24px text
           */}
           <h1 className="text-[68px] leading-[1.06] font-extrabold tracking-[-0.01em] text-[#1b2538] max-md:text-[48px]">
             Build Your Birth Poster Keepsake
@@ -38,10 +42,15 @@ export default function HomePage() {
           </p>
           <Link
             href="/builder"
-            className="mt-[40px] inline-flex h-[90px] w-[390px] items-center justify-center rounded-[18px] bg-[#d88aac] text-[47px] font-extrabold leading-none text-white transition hover:brightness-95 max-md:h-[68px] max-md:w-[260px] max-md:text-[32px]"
+            className="mt-[40px] inline-flex h-[70px] w-[250px] items-center justify-center rounded-[18px] bg-[#d88aac] text-[24px] font-extrabold leading-none text-white transition hover:brightness-95"
           >
             Get Started
           </Link>
+          </div>
+
+          <div className="hidden justify-self-end lg:block">
+            <Image src={heroImage} alt="Birth poster preview" className="h-auto w-[430px]" priority />
+          </div>
         </div>
 
         {/*
@@ -60,7 +69,7 @@ export default function HomePage() {
           ))}
         </div>
 
-        <footer className="mt-[72px] pb-[16px]">
+        <footer className="mt-[28px] pb-[8px]">
           <div className="flex flex-col gap-4 text-[14px] leading-[1.2] text-[#1f1f24] md:flex-row md:items-center md:justify-between">
             <p>© 2026 Baby Keepsakes. Designed for timeless birth memories.</p>
             <div className="flex items-center gap-[40px]">
