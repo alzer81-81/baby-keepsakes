@@ -23,11 +23,10 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#f3eaee] px-6 text-[#1d2436] [font-family:'Nunito','Avenir Next','Avenir','Segoe UI',sans-serif] md:px-10">
-      <section className="mx-auto w-full max-w-[1200px] pt-[54px] pb-[20px]">
-        <Image src="/logo.png" alt="Baby Keepsakes logo" width={190} height={62} className="h-auto w-[170px]" priority />
-
-        <div className="mt-[36px] grid items-center gap-[64px] lg:grid-cols-[minmax(0,640px)_minmax(500px,560px)]">
+      <section className="mx-auto w-full max-w-[1100px] pt-0 pb-[8px]">
+        <div className="mt-0 grid items-center gap-[24px] lg:grid-cols-[minmax(0,620px)_minmax(0,1fr)]">
           <div className="max-w-[640px]">
+          <Image src="/logo.png" alt="Baby Keepsakes logo" width={190} height={62} className="mb-[14px] h-auto w-[170px]" priority />
           {/*
             Reference measurements:
             - Hero title: 68px
@@ -50,8 +49,8 @@ export default function HomePage() {
           </Link>
           </div>
 
-          <div className="hidden min-w-[500px] justify-self-end self-start pt-[6px] lg:block">
-            <Image src={heroImage} alt="Birth poster preview" className="h-auto min-w-[500px] w-[560px] max-w-none" priority />
+          <div className="hidden justify-self-end self-start lg:block">
+            <Image src={heroImage} alt="Birth poster preview" className="h-[600px] w-auto max-w-none" priority />
           </div>
         </div>
 
@@ -61,12 +60,12 @@ export default function HomePage() {
           - Card corner radius: 20px
           - Border: 1px soft pink
         */}
-        <div className="mt-[96px] grid gap-[24px] md:grid-cols-3">
+        <div className="mt-[52px] grid gap-[24px] md:grid-cols-3">
           {cards.map((card) => (
-            <article key={card.title} className="min-h-[372px] rounded-[20px] border border-[#efc8d6] bg-[#f8f7f8] p-[30px]">
+            <article key={card.title} className="min-h-[260px] rounded-[20px] border border-[#efc8d6] bg-[#f8f7f8] p-[24px]">
               <Image src={card.icon} alt={`${card.title} icon`} width={74} height={74} className="h-[74px] w-[74px] object-contain" />
-              <h2 className="mt-[24px] text-[20px] leading-[1.2] font-extrabold text-black">{card.title}</h2>
-              <p className="mt-[10px] max-w-[264px] text-[16px] leading-[1.38] text-[#1f1f24]">{card.text}</p>
+              <h2 className="mt-[14px] text-[20px] leading-[1.2] font-extrabold text-black">{card.title}</h2>
+              <p className="mt-[6px] max-w-[264px] text-[16px] leading-[1.35] text-[#1f1f24]">{card.text}</p>
             </article>
           ))}
         </div>
