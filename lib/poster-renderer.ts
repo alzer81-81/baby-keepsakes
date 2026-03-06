@@ -208,9 +208,11 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
   const firstNameSpacing = clamp(1.05 - firstNameRaw.length * 0.02, 0.15, 0.78);
   const middleNameSpacing = clamp(0.42 - middleNameRaw.length * 0.012, 0.03, 0.32);
   const lastNameSpacing = clamp(0.42 - lastNameRaw.length * 0.012, 0.03, 0.32);
-  const firstNameNaturalWidth = estimateTextWidth(firstNameFit.text, firstNameSize, firstNameSpacing, 0.63);
-  const firstNameWidth = Math.min(firstNameNaturalWidth, nameLaneWidth);
-  const needsFirstNameCompress = firstNameNaturalWidth > nameLaneWidth;
+  const firstNameWidth = clamp(
+    estimateTextWidth(firstNameFit.text, firstNameSize, firstNameSpacing, 0.63),
+    nameLaneWidth * 0.92,
+    nameLaneWidth
+  );
   const hasMiddleName = middleNameRaw.length > 0;
   const middleNameNaturalWidth = hasMiddleName
     ? estimateTextWidth(middleNameFit.text, secondLineSize, middleNameSpacing, 0.63)
@@ -225,18 +227,17 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
   let needsSecondLineCompress = secondLineTargetWidth > secondLineMaxWidth;
 
   if (hasMiddleName) {
-    if (needsSecondLineCompress) {
-      const availableForText = secondLineMaxWidth - secondGapWidth;
-      const totalNatural = middleNameNaturalWidth + lastNameNaturalWidth;
-      const middleMin = availableForText * 0.22;
-      const lastMin = availableForText * 0.45;
-      const scale = totalNatural > 0 ? Math.min(1, availableForText / totalNatural) : 1;
-      middleNameWidth = middleNameNaturalWidth * scale;
-      lastNameWidth = lastNameNaturalWidth * scale;
-      middleNameWidth = clamp(middleNameWidth, middleMin, availableForText - lastMin);
-      lastNameWidth = availableForText - middleNameWidth;
-      secondLineTargetWidth = middleNameWidth + secondGapWidth + lastNameWidth;
-    }
+    const availableForText = secondLineMaxWidth - secondGapWidth;
+    const totalNatural = middleNameNaturalWidth + lastNameNaturalWidth;
+    const middleMin = availableForText * 0.22;
+    const lastMin = availableForText * 0.45;
+    const scale = totalNatural > 0 ? Math.min(1, availableForText / totalNatural) : 1;
+    middleNameWidth = middleNameNaturalWidth * scale;
+    lastNameWidth = lastNameNaturalWidth * scale;
+    middleNameWidth = clamp(middleNameWidth, middleMin, availableForText - lastMin);
+    lastNameWidth = availableForText - middleNameWidth;
+    secondLineTargetWidth = middleNameWidth + secondGapWidth + lastNameWidth;
+    needsSecondLineCompress = true;
   } else if (needsSecondLineCompress) {
     const scale = secondLineMaxWidth / secondLineTargetWidth;
     lastNameWidth *= scale;
@@ -284,7 +285,7 @@ export function renderPosterSvg(spec: PosterDesignSpec, mode: RenderMode = "prev
   <line x1="0" y1="110" x2="216" y2="110" stroke="${palette.stitch}" stroke-width="0.9" stroke-dasharray="3 2" />
   <line x1="0" y1="199" x2="216" y2="199" stroke="${palette.stitch}" stroke-width="0.9" stroke-dasharray="3 2" />
 
-  <text x="108" y="${firstNameY}" text-anchor="middle" dominant-baseline="middle" ${needsFirstNameCompress ? `textLength="${firstNameWidth}" lengthAdjust="spacingAndGlyphs"` : ""} style="font-family:${fontFamily};font-size:${firstNameSize}px;font-weight:800;letter-spacing:${firstNameSpacing}px;fill:${palette.firstName};">${firstName}</text>
+  <text x="108" y="${firstNameY}" text-anchor="middle" dominant-baseline="middle" textLength="${firstNameWidth}" lengthAdjust="spacingAndGlyphs" style="font-family:${fontFamily};font-size:${firstNameSize}px;font-weight:800;letter-spacing:${firstNameSpacing}px;fill:${palette.firstName};">${firstName}</text>
   ${
     hasMiddleName
       ? `<text x="${middleNameX}" y="${lastNameY}" text-anchor="start" dominant-baseline="middle" ${
